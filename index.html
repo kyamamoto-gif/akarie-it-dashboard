@@ -482,6 +482,8 @@ function renderKPICards() {
     { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'blue', unit:'' },
     { label:'一次実施', value: kpi.一次実施, target: t.一次実施, color:'teal', unit:'' },
     { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
+    { label:'一次通過', value: kpi.一次通過, target: null, color:'teal', unit:'' },
+    { label:'最終通過', value: kpi.最終通過, target: null, color:'amber', unit:'' },
     { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
     { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
   ];
@@ -495,9 +497,8 @@ function renderKPICards() {
     return `<div class="kpi-card ${c.color}">
       <div class="kpi-label">${c.label}</div>
       <div class="kpi-value">${c.value}<span style="font-size:.9rem;font-weight:400">${c.unit}</span></div>
-      <div class="kpi-target">目標 ${c.target}${c.unit}</div>
-      <div class="kpi-pct ${cls}">${pct}%</div>
-      <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div></div>
+      ${c.target != null ? `<div class="kpi-target">目標 ${c.target}${c.unit}</div>` : ""}
+      ${pct != null ? `<div class="kpi-pct ${cls}">${pct}%</div><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div></div>` : ""}
     </div>`;
   }).join('');
 }
@@ -533,13 +534,15 @@ function renderKPIProgress() {
     { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#3b82f6' },
     { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施, color:'#6366f1' },
     { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
+    { label:'一次通過', val: kpi.一次通過, tgt: null, color:'#0ea5e9' },
+    { label:'最終通過', val: kpi.最終通過, tgt: null, color:'#f59e0b' },
     { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
     { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
   ];
   document.getElementById('kpi-progress').innerHTML = `
     <div class="funnel-bars" style="margin-top:8px">
     ${items.map(i => {
-      const pct = i.tgt ? Math.min(Math.round(i.val/i.tgt*100),100) : 0;
+      const pct = (i.tgt != null && i.tgt > 0) ? Math.min(Math.round(i.val/i.tgt*100),100) : null;
       return `<div class="funnel-row">
         <div class="funnel-label">${i.label}</div>
         <div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:${i.color}">${i.val}</div></div>
