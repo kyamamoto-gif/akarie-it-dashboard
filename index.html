@@ -246,6 +246,7 @@
     <button class="tab-btn" onclick="showPage('age',this)">👥 年代別</button>
     <button class="tab-btn" onclick="showPage('nationality',this)">🌏 国籍別</button>
     <button class="tab-btn" onclick="showPage('monthly',this)">📅 月別詳細</button>
+    <button class="tab-btn" onclick="showPage('period',this)">⏱️ 期間分析</button>
   </div>
 
   <!-- Loading -->
@@ -359,6 +360,19 @@
     </div>
   </div>
 
+
+  <!-- ━━━ PAGE: 期間分析 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-period" class="page">
+    <div class="three-col" id="period-summary"></div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">月別 平均日数推移</div>
+      <div class="chart-wrap tall"><canvas id="chart-period-monthly"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">月別詳細テーブル（平均日数）</div>
+      <div style="overflow-x:auto"><table class="monthly-table" id="period-table"></table></div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -434,6 +448,7 @@ function showPage(name, btn) {
   if (name === 'age')         renderAgePage();
   if (name === 'nationality') renderNatPage();
   if (name === 'monthly')     renderMonthlyPage();
+  if (name === 'period')      renderPeriodPage();
 }
 function hidePages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
 
@@ -787,6 +802,67 @@ function chartOpts(unit) {
       y: { beginAtZero:true, grid:{ color:'#e2e8f0' }, ticks:{ callback: v => v+unit, font:{size:11} } }
     }
   };
+}
+
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: 期間分析
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderPeriodPage() {
+  if (!D || !D.periods) return;
+  const p = D.periods;
+  const z = p.全体;
+
+  // サマリーカード3枚
+  const summaryItems = [
+    { label:'応募 → 一次面接', days: z.応募_一次, n: z.応募_一次_n, color:'#3b82f6' },
+    { label:'一次面接 → 最終面接', days: z.一次_最終, n: z.一次_最終_n, color:'#6366f1' },
+    { label:'応募 → 内定', days: z.応募_内定, n: z.応募_内定_n, color:'#22c55e' },
+  ];
+  document.getElementById('period-summary').innerHTML = summaryItems.map(s => `
+    <div class="card" style="border-top:3px solid ${s.color}">
+      <div class="kpi-label">${s.label}</div>
+      <div class="kpi-value" style="color:${s.color}">${s.days != null ? s.days : '-'}<span style="font-size:1rem;font-weight:400"> 日</span></div>
+      <div class="kpi-target">全体平均（${s.n}件）</div>
+    </div>`).join('');
+
+  // 月別折れ線グラフ
+  const months = sortedMonths();
+  const labels = months.map(fmtMonth);
+  const datasets = [
+    { label:'応募→一次面接', data: months.map(m => p.月別[m]?.応募_一次 ?? null), borderColor:'#3b82f6', backgroundColor:'#3b82f622', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'一次→最終面接', data: months.map(m => p.月別[m]?.一次_最終 ?? null), borderColor:'#6366f1', backgroundColor:'#6366f122', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'応募→内定',     data: months.map(m => p.月別[m]?.応募_内定 ?? null), borderColor:'#22c55e', backgroundColor:'#22c55e22', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+  ];
+  destroyChart('period-monthly');
+  charts['period-monthly'] = new Chart(document.getElementById('chart-period-monthly'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
+      scales:{
+        x:{ grid:{color:'#e2e8f0'}, ticks:{font:{size:11}} },
+        y:{ beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+'日', font:{size:11}} }
+      }
+    }
+  });
+
+  // 月別テーブル
+  const head = `<tr><th>月</th><th>応募→一次(日)</th><th>件数</th><th>一次→最終(日)</th><th>件数</th><th>応募→内定(日)</th><th>件数</th></tr>`;
+  const body = months.map(m => {
+    const d = p.月別[m] || {};
+    return `<tr>
+      <td class="label">${fmtMonth(m)}</td>
+      <td>${d.応募_一次 != null ? d.応募_一次 : '-'}</td>
+      <td style="color:var(--muted)">${d.応募_一次_n || 0}件</td>
+      <td>${d.一次_最終 != null ? d.一次_最終 : '-'}</td>
+      <td style="color:var(--muted)">${d.一次_最終_n || 0}件</td>
+      <td>${d.応募_内定 != null ? d.応募_内定 : '-'}</td>
+      <td style="color:var(--muted)">${d.応募_内定_n || 0}件</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
 }
 
 function genColors(n) {
