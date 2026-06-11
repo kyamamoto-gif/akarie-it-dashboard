@@ -478,9 +478,10 @@ function renderKPICards() {
   const t   = D.targets;
   const cards = [
     { label:'応募数', value: kpi.応募数, target: t.応募, color:'blue', unit:'' },
-    { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'teal', unit:'' },
-    { label:'一次通過', value: kpi.一次通過, target: t.一次通過, color:'blue', unit:'' },
-    { label:'最終通過', value: kpi.最終通過, target: t.最終通過, color:'amber', unit:'' },
+    { label:'有効応募', value: kpi.有効応募, target: t.有効応募, color:'teal', unit:'' },
+    { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'blue', unit:'' },
+    { label:'一次実施', value: kpi.一次実施, target: t.一次実施, color:'teal', unit:'' },
+    { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
     { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
     { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
   ];
@@ -528,9 +529,10 @@ function renderKPIProgress() {
   const kpi = D.kpi, t = D.targets;
   const items = [
     { label:'応募数', val: kpi.応募数, tgt: t.応募, color:'#3b82f6' },
-    { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#0ea5e9' },
-    { label:'一次通過', val: kpi.一次通過, tgt: t.一次通過, color:'#6366f1' },
-    { label:'最終通過', val: kpi.最終通過, tgt: t.最終通過, color:'#f59e0b' },
+    { label:'有効応募', val: kpi.有効応募, tgt: t.有効応募, color:'#0ea5e9' },
+    { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#3b82f6' },
+    { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施, color:'#6366f1' },
+    { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
     { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
     { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
   ];
@@ -553,7 +555,7 @@ function renderKPIProgress() {
 function renderFunnelPage() {
   if (!D) return;
   const selMonth = document.getElementById('funnel-month').value;
-  let agg = { 応募:0, 書類通過:0, 一次通過:0, 最終通過:0, 内定:0, 入社:0 };
+  let agg = { 応募:0, 有効応募:0, 書類通過:0, 一次実施:0, 最終実施:0, 内定:0, 入社:0 };
   const fm = D.funnel.monthly;
   if (selMonth === 'all') {
     Object.values(fm).forEach(v => { Object.keys(agg).forEach(k => agg[k]+=v[k]||0); });
@@ -562,8 +564,8 @@ function renderFunnelPage() {
   }
   // Funnel bars
   const max = agg.応募 || 1;
-  const colors = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6'];
-  const keys = ['応募','書類通過','一次通過','最終通過','内定','入社'];
+  const colors = ['#3b82f6','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
+  const keys = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
   document.getElementById('funnel-actual').innerHTML = keys.map((k,i) => `
     <div class="funnel-row">
       <div class="funnel-label">${k}</div>
@@ -573,7 +575,7 @@ function renderFunnelPage() {
 
   // Compare chart
   const t = D.targets;
-  const tgtVals = [t.応募, t.書類通過, t.一次通過, t.最終通過, t.内定, t.入社];
+  const tgtVals = [t.応募, t.有効応募, t.書類通過, t.一次実施, t.最終実施, t.内定, t.入社];
   const actVals = keys.map(k => agg[k]);
   destroyChart('funnel-compare');
   charts['funnel-compare'] = new Chart(document.getElementById('chart-funnel-compare'), {
@@ -590,7 +592,7 @@ function renderFunnelPage() {
 
   // Monthly funnel line
   const months = sortedMonths();
-  const datasets = keys.slice(0,4).map((k,i) => ({
+  const datasets = keys.slice(0,5).map((k,i) => ({
     label: k, data: months.map(m => (fm[m]||{})[k]||0),
     borderColor: colors[i], backgroundColor: colors[i]+'22', fill: true, tension:.3,
     pointRadius: 4, borderWidth: 2,
@@ -726,7 +728,7 @@ function renderMonthlyPage() {
   });
 
   // Table
-  const head = `<tr><th>月</th><th>目標</th><th>実績</th><th>達成率</th><th>書類通過</th><th>一次通過</th><th>最終通過</th><th>内定</th></tr>`;
+  const head = `<tr><th>月</th><th>目標</th><th>実績</th><th>達成率</th><th>書類通過</th><th>一次実施</th><th>最終実施</th><th>内定</th></tr>`;
   const body = months.map((m, i) => {
     const fm = (D.funnel.monthly[m]||{});
     const r = rates[i];
@@ -737,8 +739,8 @@ function renderMonthlyPage() {
       <td>${actual[i]}</td>
       <td class="${cls}">${r}%</td>
       <td>${fm.書類通過||0}</td>
-      <td>${fm.一次通過||0}</td>
-      <td>${fm.最終通過||0}</td>
+      <td>${fm.一次実施||0}</td>
+      <td>${fm.最終実施||0}</td>
       <td>${fm.内定||0}</td>
     </tr>`;
   }).join('');
