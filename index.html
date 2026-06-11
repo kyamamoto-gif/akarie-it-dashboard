@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アカリエ IT部門 採用KPIダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  /* ─── Design Tokens ──────────────────────────── */
+  :root {
+    --navy:       #1a2744;
+    --navy-mid:   #243159;
+    --navy-light: #2e3f6f;
+    --accent:     #3b82f6;
+    --accent-h:   #60a5fa;
+    --teal:       #0ea5e9;
+    --green:      #22c55e;
+    --amber:      #f59e0b;
+    --red:        #ef4444;
+    --bg:         #f0f4f8;
+    --card:       #ffffff;
+    --border:     #e2e8f0;
+    --text:       #1e293b;
+    --muted:      #64748b;
+    --reach:      #94a3b8;
+    --font:       'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ─── Auth overlay ───────────────────────────── */
+  #auth-overlay {
+    position: fixed; inset: 0; background: var(--navy);
+    display: flex; align-items: center; justify-content: center; z-index: 999;
+  }
+  .auth-box {
+    background: var(--navy-mid); border: 1px solid var(--navy-light);
+    border-radius: 12px; padding: 40px 48px; text-align: center;
+  }
+  .auth-box h2 { color: #fff; font-size: 1.1rem; margin-bottom: 8px; font-weight: 500; }
+  .auth-box p  { color: var(--reach); font-size: 0.85rem; margin-bottom: 24px; }
+  .auth-box input {
+    display: block; width: 100%; padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--navy-light); background: var(--navy);
+    color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none;
+  }
+  .auth-box input:focus { border-color: var(--accent); }
+  .auth-box button {
+    width: 100%; padding: 10px; border-radius: 8px; background: var(--accent);
+    color: #fff; border: none; font-size: 1rem; cursor: pointer; font-family: var(--font);
+  }
+  .auth-box button:hover { background: var(--accent-h); }
+  .auth-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; }
+
+  /* ─── Header ─────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    color: #fff; padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-badge {
+    background: var(--accent); color: #fff; font-size: 0.7rem;
+    padding: 3px 8px; border-radius: 4px; font-weight: 600; letter-spacing: .04em;
+  }
+  .header-title { font-size: 1rem; font-weight: 600; letter-spacing: .02em; }
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  #update-time { font-size: 0.75rem; color: var(--reach); }
+  #refresh-btn {
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    font-size: 0.8rem; font-family: var(--font);
+  }
+  #refresh-btn:hover { background: rgba(255,255,255,.2); }
+
+  /* ─── Layout ─────────────────────────────────── */
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 48px; }
+
+  /* ─── Nav tabs ───────────────────────────────── */
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 24px;
+    background: var(--card); border-radius: 10px; padding: 5px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); width: fit-content;
+  }
+  .tab-btn {
+    padding: 8px 18px; border-radius: 7px; border: none; background: none;
+    font-family: var(--font); font-size: 0.85rem; cursor: pointer; color: var(--muted);
+    transition: all .15s;
+  }
+  .tab-btn.active { background: var(--navy); color: #fff; font-weight: 600; }
+  .tab-btn:hover:not(.active) { background: var(--bg); }
+
+  /* ─── Cards ──────────────────────────────────── */
+  .card {
+    background: var(--card); border-radius: 12px; padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .07em; margin-bottom: 16px;
+  }
+
+  /* ─── KPI grid ───────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px; margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--card); border-radius: 12px; padding: 18px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06); border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .kpi-card.blue::before   { background: var(--accent); }
+  .kpi-card.teal::before   { background: var(--teal); }
+  .kpi-card.green::before  { background: var(--green); }
+  .kpi-card.amber::before  { background: var(--amber); }
+  .kpi-card.red::before    { background: var(--red); }
+  .kpi-card.purple::before { background: #8b5cf6; }
+  .kpi-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+  .kpi-value { font-size: 1.9rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .kpi-target { font-size: 0.72rem; color: var(--reach); margin-top: 5px; }
+  .kpi-pct {
+    font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+    display: inline-block; margin-top: 6px;
+  }
+  .kpi-pct.good  { background: #dcfce7; color: #15803d; }
+  .kpi-pct.warn  { background: #fef9c3; color: #a16207; }
+  .kpi-pct.bad   { background: #fee2e2; color: #b91c1c; }
+
+  /* ─── Progress bar ───────────────────────────── */
+  .progress-wrap { margin-top: 8px; }
+  .progress-bar  {
+    height: 5px; border-radius: 9px; background: var(--border); overflow: hidden;
+  }
+  .progress-fill { height: 100%; border-radius: 9px; transition: width .6s ease; }
+
+  /* ─── Two-col layout ─────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* ─── Chart containers ───────────────────────── */
+  .chart-wrap { position: relative; height: 260px; }
+  .chart-wrap.tall { height: 320px; }
+  .chart-wrap.short { height: 200px; }
+
+  /* ─── Funnel ─────────────────────────────────── */
+  .funnel-bars { display: flex; flex-direction: column; gap: 10px; }
+  .funnel-row { display: grid; grid-template-columns: 80px 1fr 90px; align-items: center; gap: 10px; }
+  .funnel-label { font-size: 0.78rem; color: var(--muted); text-align: right; }
+  .funnel-track { background: var(--bg); border-radius: 6px; overflow: hidden; height: 28px; }
+  .funnel-fill {
+    height: 100%; border-radius: 6px; display: flex; align-items: center;
+    padding-left: 10px; font-size: 0.75rem; font-weight: 600; color: #fff;
+    transition: width .7s cubic-bezier(.4,0,.2,1);
+    min-width: 40px;
+  }
+  .funnel-meta { font-size: 0.75rem; color: var(--muted); }
+
+  /* ─── Select/Filter ──────────────────────────── */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .filter-row label { font-size: 0.78rem; color: var(--muted); }
+  .filter-row select {
+    padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--card); font-family: var(--font); font-size: 0.82rem;
+    color: var(--text); outline: none; cursor: pointer;
+  }
+  .filter-row select:focus { border-color: var(--accent); }
+
+  /* ─── Month table ────────────────────────────── */
+  .monthly-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .monthly-table th {
+    background: var(--bg); padding: 8px 10px; text-align: center;
+    font-weight: 600; color: var(--muted); font-size: 0.72rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .monthly-table td { padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+  .monthly-table tr:last-child td { border-bottom: none; }
+  .monthly-table td.label { text-align: left; font-weight: 600; }
+  .monthly-table td.hit  { background: #dcfce7; color: #15803d; font-weight: 600; }
+  .monthly-table td.miss { background: #fee2e2; color: #b91c1c; }
+
+  /* ─── Section page ───────────────────────────── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── Loading ────────────────────────────────── */
+  #loading {
+    display: flex; align-items: center; justify-content: center;
+    height: 300px; color: var(--muted); gap: 10px;
+  }
+  .spinner {
+    width: 22px; height: 22px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Responsive ─────────────────────────────── */
+  @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } }
+  @media (max-width: 700px)  { .kpi-grid { grid-template-columns: repeat(2,1fr); } .two-col,.three-col { grid-template-columns: 1fr; } }
+
+  /* ─── Legend dots ────────────────────────────── */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ─── Auth ─────────────────────────────── -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <h2>アカリエ IT部門</h2>
+    <p>採用KPIダッシュボード</p>
+    <input type="password" id="pw-input" placeholder="パスワード" />
+    <button onclick="checkPassword()">ログイン</button>
+    <div class="auth-error" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- ─── Header ───────────────────────────── -->
+<header>
+  <div class="header-left">
+    <span class="header-badge">IT部門</span>
+    <span class="header-title">採用KPIダッシュボード</span>
+  </div>
+  <div class="header-right">
+    <span id="update-time">データ取得中…</span>
+    <button id="refresh-btn" onclick="loadData()">↻ 更新</button>
+  </div>
+</header>
+
+<main id="main-content" style="display:none">
+
+  <!-- Nav tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showPage('overview',this)">📊 概要・KPI</button>
+    <button class="tab-btn" onclick="showPage('funnel',this)">🔽 選考ファネル</button>
+    <button class="tab-btn" onclick="showPage('age',this)">👥 年代別</button>
+    <button class="tab-btn" onclick="showPage('nationality',this)">🌏 国籍別</button>
+    <button class="tab-btn" onclick="showPage('monthly',this)">📅 月別詳細</button>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading"><div class="spinner"></div>データを読み込んでいます…</div>
+
+  <!-- ━━━ PAGE: 概要・KPI ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-overview" class="page">
+
+    <!-- KPI cards -->
+    <div class="kpi-grid" id="kpi-cards"></div>
+
+    <!-- 月別応募 chart + 進捗 -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">月別応募数 vs 目標</div>
+        <div class="chart-wrap"><canvas id="chart-monthly-bar"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">採用フロー 全体進捗</div>
+        <div id="kpi-progress"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ━━━ PAGE: 選考ファネル ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-funnel" class="page">
+    <div class="filter-row">
+      <label>期間：</label>
+      <select id="funnel-period" onchange="renderFunnelPage()">
+        <option value="all">全期間</option>
+      </select>
+      <label style="margin-left:12px">月：</label>
+      <select id="funnel-month" onchange="renderFunnelPage()">
+        <option value="all">全月</option>
+      </select>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">選考歩留まり（実績）</div>
+        <div class="funnel-bars" id="funnel-actual"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">目標 vs 実績 比較</div>
+        <div class="chart-wrap"><canvas id="chart-funnel-compare"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">月別ファネル推移（応募→書類通過）</div>
+      <div class="chart-wrap tall"><canvas id="chart-funnel-monthly"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ━━━ PAGE: 年代別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-age" class="page">
+    <div class="filter-row">
+      <label>媒体：</label>
+      <select id="age-media" onchange="renderAgePage()">
+        <option value="all">すべて</option>
+      </select>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">年代分布（円グラフ）</div>
+        <div class="chart-wrap"><canvas id="chart-age-pie"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">年代分布（棒グラフ）</div>
+        <div class="chart-wrap"><canvas id="chart-age-bar"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">媒体別 × 年代別</div>
+      <div class="chart-wrap tall"><canvas id="chart-age-media"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ━━━ PAGE: 国籍別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-nationality" class="page">
+    <div class="filter-row">
+      <label>媒体：</label>
+      <select id="nat-media" onchange="renderNatPage()">
+        <option value="all">すべて</option>
+      </select>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">国籍分布（全体）</div>
+        <div class="chart-wrap"><canvas id="chart-nat-pie"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">媒体別 × 国籍</div>
+        <div class="chart-wrap"><canvas id="chart-nat-media"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">国籍別 月次推移（折れ線グラフ）</div>
+      <div class="chart-wrap tall"><canvas id="chart-nat-monthly"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ━━━ PAGE: 月別詳細 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div id="page-monthly" class="page">
+    <div class="card">
+      <div class="card-title">月別 応募数・目標・達成率</div>
+      <div class="chart-wrap tall"><canvas id="chart-monthly-detail"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">月別詳細テーブル</div>
+      <div style="overflow-x:auto"><table class="monthly-table" id="monthly-table"></table></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Config — GASデプロイ後にURLを差し替えてください
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const GAS_URL = 'YOUR_GAS_DEPLOY_URL_HERE';
+const PASSWORD = 'akarie2026';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Auth
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+function checkPassword() {
+  const v = document.getElementById('pw-input').value;
+  if (v === PASSWORD) {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    loadData();
+  } else {
+    document.getElementById('auth-err').textContent = 'パスワードが違います';
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Global state
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let D = null; // loaded data
+const charts = {};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Data load
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function loadData() {
+  document.getElementById('loading').style.display = 'flex';
+  hidePages();
+  // JSONP経由でGASを叩く
+  const cbName = '_cb_' + Date.now();
+  const script = document.createElement('script');
+  window[cbName] = function(data) {
+    document.body.removeChild(script);
+    delete window[cbName];
+    D = data;
+    onDataLoaded();
+  };
+  script.onerror = function() {
+    document.getElementById('loading').innerHTML = '<span style="color:var(--red)">GAS URLを設定してください (index.html の GAS_URL を更新)</span>';
+  };
+  script.src = GAS_URL + '?callback=' + cbName;
+  document.body.appendChild(script);
+}
+
+function onDataLoaded() {
+  document.getElementById('loading').style.display = 'none';
+  const t = new Date(D.updatedAt);
+  document.getElementById('update-time').textContent = '更新: ' + t.toLocaleString('ja-JP');
+  buildFilters();
+  renderOverview();
+  showPage('overview', document.querySelector('.tab-btn'));
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Page nav
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (!D) return;
+  if (name === 'funnel')      renderFunnelPage();
+  if (name === 'age')         renderAgePage();
+  if (name === 'nationality') renderNatPage();
+  if (name === 'monthly')     renderMonthlyPage();
+}
+function hidePages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Build dropdown filters
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function buildFilters() {
+  const months = sortedMonths();
+
+  // Funnel month
+  const fm = document.getElementById('funnel-month');
+  months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=fmtMonth(m); fm.appendChild(o); });
+
+  // Age media
+  const am = document.getElementById('age-media');
+  (D.ageByMedia.mediaList||[]).forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; am.appendChild(o); });
+
+  // Nat media
+  const nm = document.getElementById('nat-media');
+  (D.nationalityByMedia.nationalityList||[]).forEach(() => {});
+  // media list from byMedia keys
+  Object.keys(D.nationalityByMedia.byMedia||{}).sort().forEach(m => {
+    const o=document.createElement('option'); o.value=m; o.textContent=m; nm.appendChild(o);
+  });
+}
+
+function sortedMonths() {
+  return Object.keys(D.funnel.monthly||{}).sort();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: 概要
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderOverview() {
+  renderKPICards();
+  renderMonthlyBar();
+  renderKPIProgress();
+}
+
+function renderKPICards() {
+  const kpi = D.kpi;
+  const t   = D.targets;
+  const cards = [
+    { label:'応募数', value: kpi.応募数, target: t.応募, color:'blue', unit:'' },
+    { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'teal', unit:'' },
+    { label:'一次通過', value: kpi.一次通過, target: t.一次通過, color:'blue', unit:'' },
+    { label:'最終通過', value: kpi.最終通過, target: t.最終通過, color:'amber', unit:'' },
+    { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
+    { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
+  ];
+  const el = document.getElementById('kpi-cards');
+  el.innerHTML = cards.map(c => {
+    const pct = t[c.label] ? Math.round(c.value / c.target * 100) : 0;
+    const cls = pct >= 100 ? 'good' : pct >= 70 ? 'warn' : 'bad';
+    const barColor = c.color === 'blue' ? '#3b82f6' : c.color === 'teal' ? '#0ea5e9' :
+                     c.color === 'green' ? '#22c55e' : c.color === 'amber' ? '#f59e0b' :
+                     c.color === 'red' ? '#ef4444' : '#8b5cf6';
+    return `<div class="kpi-card ${c.color}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.value}<span style="font-size:.9rem;font-weight:400">${c.unit}</span></div>
+      <div class="kpi-target">目標 ${c.target}${c.unit}</div>
+      <div class="kpi-pct ${cls}">${pct}%</div>
+      <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderMonthlyBar() {
+  const months = allFiscalMonths();
+  const actual = months.map(m => D.monthly[m] || 0);
+  const targets = months.map(m => {
+    const mo = parseInt(m.split('-')[1]);
+    return D.monthlyTargets[mo] || 0;
+  });
+  const labels = months.map(m => fmtMonth(m));
+  destroyChart('monthly-bar');
+  charts['monthly-bar'] = new Chart(document.getElementById('chart-monthly-bar'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'実績', data: actual, backgroundColor: 'rgba(59,130,246,.7)', borderRadius: 5 },
+        { label:'目標', data: targets, type:'line', borderColor:'#f59e0b', borderWidth:2,
+          pointBackgroundColor:'#f59e0b', fill:false, tension:.3 },
+      ]
+    },
+    options: chartOpts('人')
+  });
+}
+
+function renderKPIProgress() {
+  const kpi = D.kpi, t = D.targets;
+  const items = [
+    { label:'応募数', val: kpi.応募数, tgt: t.応募, color:'#3b82f6' },
+    { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#0ea5e9' },
+    { label:'一次通過', val: kpi.一次通過, tgt: t.一次通過, color:'#6366f1' },
+    { label:'最終通過', val: kpi.最終通過, tgt: t.最終通過, color:'#f59e0b' },
+    { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
+    { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
+  ];
+  document.getElementById('kpi-progress').innerHTML = `
+    <div class="funnel-bars" style="margin-top:8px">
+    ${items.map(i => {
+      const pct = i.tgt ? Math.min(Math.round(i.val/i.tgt*100),100) : 0;
+      return `<div class="funnel-row">
+        <div class="funnel-label">${i.label}</div>
+        <div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:${i.color}">${i.val}</div></div>
+        <div class="funnel-meta">/ ${i.tgt} (${pct}%)</div>
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: ファネル
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderFunnelPage() {
+  if (!D) return;
+  const selMonth = document.getElementById('funnel-month').value;
+  let agg = { 応募:0, 書類通過:0, 一次通過:0, 最終通過:0, 内定:0, 入社:0 };
+  const fm = D.funnel.monthly;
+  if (selMonth === 'all') {
+    Object.values(fm).forEach(v => { Object.keys(agg).forEach(k => agg[k]+=v[k]||0); });
+  } else {
+    if (fm[selMonth]) Object.keys(agg).forEach(k => agg[k]=(fm[selMonth][k]||0));
+  }
+  // Funnel bars
+  const max = agg.応募 || 1;
+  const colors = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6'];
+  const keys = ['応募','書類通過','一次通過','最終通過','内定','入社'];
+  document.getElementById('funnel-actual').innerHTML = keys.map((k,i) => `
+    <div class="funnel-row">
+      <div class="funnel-label">${k}</div>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(agg[k]/max*100)}%;background:${colors[i]}">${agg[k]}</div></div>
+      <div class="funnel-meta">${i>0?'前工程比 '+pct2(agg[k],i===1?agg.応募:agg[keys[i-1]])+'%':''}</div>
+    </div>`).join('');
+
+  // Compare chart
+  const t = D.targets;
+  const tgtVals = [t.応募, t.書類通過, t.一次通過, t.最終通過, t.内定, t.入社];
+  const actVals = keys.map(k => agg[k]);
+  destroyChart('funnel-compare');
+  charts['funnel-compare'] = new Chart(document.getElementById('chart-funnel-compare'), {
+    type: 'bar',
+    data: {
+      labels: keys,
+      datasets: [
+        { label:'目標', data: tgtVals, backgroundColor:'rgba(100,116,139,.3)', borderRadius:4 },
+        { label:'実績', data: actVals, backgroundColor: colors, borderRadius:4 },
+      ]
+    },
+    options: chartOpts('人')
+  });
+
+  // Monthly funnel line
+  const months = sortedMonths();
+  const datasets = keys.slice(0,4).map((k,i) => ({
+    label: k, data: months.map(m => (fm[m]||{})[k]||0),
+    borderColor: colors[i], backgroundColor: colors[i]+'22', fill: true, tension:.3,
+    pointRadius: 4, borderWidth: 2,
+  }));
+  destroyChart('funnel-monthly');
+  charts['funnel-monthly'] = new Chart(document.getElementById('chart-funnel-monthly'), {
+    type: 'line',
+    data: { labels: months.map(fmtMonth), datasets },
+    options: chartOpts('人')
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: 年代別
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderAgePage() {
+  if (!D) return;
+  const sel = document.getElementById('age-media').value;
+  const data = D.ageByMedia;
+  const brackets = data.brackets;
+  const src = sel === 'all' ? data.total : (data.byMedia[sel]||{});
+  const vals = brackets.map(b => src[b]||0);
+  const colors = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6','#94a3b8'];
+
+  // Pie
+  destroyChart('age-pie');
+  charts['age-pie'] = new Chart(document.getElementById('chart-age-pie'), {
+    type: 'pie',
+    data: { labels: brackets, datasets:[{ data: vals, backgroundColor: colors, borderWidth:1 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
+  });
+
+  // Bar
+  destroyChart('age-bar');
+  charts['age-bar'] = new Chart(document.getElementById('chart-age-bar'), {
+    type: 'bar',
+    data: { labels: brackets, datasets:[{ label:'応募数', data: vals, backgroundColor: colors, borderRadius:6 }] },
+    options: chartOpts('人')
+  });
+
+  // Media × age stacked
+  const mediaList = data.mediaList;
+  const mediaColors = genColors(mediaList.length);
+  const stackedDs = mediaList.map((m,i) => ({
+    label: m, data: brackets.map(b => (data.byMedia[m]||{})[b]||0),
+    backgroundColor: mediaColors[i], borderRadius: 4,
+  }));
+  destroyChart('age-media');
+  charts['age-media'] = new Chart(document.getElementById('chart-age-media'), {
+    type: 'bar',
+    data: { labels: brackets, datasets: stackedDs },
+    options: { ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: 国籍別
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderNatPage() {
+  if (!D) return;
+  const nd = D.nationalityByMedia;
+  const nats = nd.nationalityList;
+  const colors = genColors(nats.length);
+  const selMedia = document.getElementById('nat-media').value;
+
+  // Pie (total)
+  const totalVals = nats.map(n => nd.total[n]||0);
+  destroyChart('nat-pie');
+  charts['nat-pie'] = new Chart(document.getElementById('chart-nat-pie'), {
+    type: 'doughnut',
+    data: { labels: nats, datasets:[{ data: totalVals, backgroundColor: colors, borderWidth:1 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
+  });
+
+  // Media × nat
+  const mediaKeys = Object.keys(nd.byMedia).sort();
+  const stackedDs = nats.map((n,i) => ({
+    label: n, data: mediaKeys.map(m => (nd.byMedia[m]||{})[n]||0),
+    backgroundColor: colors[i], borderRadius:4,
+  }));
+  destroyChart('nat-media');
+  charts['nat-media'] = new Chart(document.getElementById('chart-nat-media'), {
+    type: 'bar',
+    data: { labels: mediaKeys, datasets: stackedDs },
+    options: { ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
+  });
+
+  // Monthly line
+  const months = sortedMonths();
+  const lineDs = nats.map((n,i) => ({
+    label: n, data: months.map(m => (nd.byMonth[m]||{})[n]||0),
+    borderColor: colors[i], backgroundColor: colors[i]+'22', tension:.3,
+    pointRadius:3, borderWidth:2, fill:false,
+  }));
+  destroyChart('nat-monthly');
+  charts['nat-monthly'] = new Chart(document.getElementById('chart-nat-monthly'), {
+    type: 'line',
+    data: { labels: months.map(fmtMonth), datasets: lineDs },
+    options: chartOpts('人')
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ▌ PAGE: 月別詳細
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderMonthlyPage() {
+  if (!D) return;
+  const months = allFiscalMonths();
+  const labels = months.map(fmtMonth);
+  const actual  = months.map(m => D.monthly[m]||0);
+  const targets = months.map(m => D.monthlyTargets[parseInt(m.split('-')[1])]||0);
+  const rates   = months.map((m,i) => targets[i] ? Math.round(actual[i]/targets[i]*100) : 0);
+
+  destroyChart('monthly-detail');
+  charts['monthly-detail'] = new Chart(document.getElementById('chart-monthly-detail'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'実績', data: actual, backgroundColor: actual.map((v,i) => v>=targets[i]?'rgba(34,197,94,.7)':'rgba(59,130,246,.7)'), borderRadius:5, yAxisID:'y' },
+        { label:'目標', data: targets, type:'line', borderColor:'#f59e0b', borderWidth:2, fill:false, tension:.3, yAxisID:'y' },
+        { label:'達成率(%)', data: rates, type:'line', borderColor:'#8b5cf6', borderDash:[4,4], borderWidth:2, fill:false, yAxisID:'y2', pointRadius:4 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
+      scales:{
+        y:{ beginAtZero:true, ticks:{callback:v=>v+'人'}, grid:{color:'#e2e8f0'} },
+        y2:{ position:'right', ticks:{callback:v=>v+'%'}, grid:{drawOnChartArea:false} }
+      }
+    }
+  });
+
+  // Table
+  const head = `<tr><th>月</th><th>目標</th><th>実績</th><th>達成率</th><th>書類通過</th><th>一次通過</th><th>最終通過</th><th>内定</th></tr>`;
+  const body = months.map((m, i) => {
+    const fm = (D.funnel.monthly[m]||{});
+    const r = rates[i];
+    const cls = r>=100?'hit':r<70?'miss':'';
+    return `<tr>
+      <td class="label">${labels[i]}</td>
+      <td>${targets[i]}</td>
+      <td>${actual[i]}</td>
+      <td class="${cls}">${r}%</td>
+      <td>${fm.書類通過||0}</td>
+      <td>${fm.一次通過||0}</td>
+      <td>${fm.最終通過||0}</td>
+      <td>${fm.内定||0}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('monthly-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Utilities
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function allFiscalMonths() {
+  // 4月〜3月の全月キー（データの年度から生成）
+  const existing = sortedMonths();
+  if (!existing.length) return [];
+  const firstYear = parseInt(existing[0].split('-')[0]);
+  const fiscalYear = parseInt(existing[0].split('-')[1]) >= 4 ? firstYear : firstYear - 1;
+  const result = [];
+  for (let m=4; m<=12; m++) result.push(`${fiscalYear}-${String(m).padStart(2,'0')}`);
+  for (let m=1; m<=3;  m++) result.push(`${fiscalYear+1}-${String(m).padStart(2,'0')}`);
+  return result;
+}
+
+function fmtMonth(key) {
+  const [y,m] = key.split('-');
+  return y + '/' + m;
+}
+
+function pct2(n, d) {
+  return (!d||d===0) ? 0 : Math.round(n/d*100);
+}
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+function chartOpts(unit) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position:'bottom', labels:{ font:{size:11} } } },
+    scales: {
+      x: { grid:{ color:'#e2e8f0' }, ticks:{ font:{size:11} } },
+      y: { beginAtZero:true, grid:{ color:'#e2e8f0' }, ticks:{ callback: v => v+unit, font:{size:11} } }
+    }
+  };
+}
+
+function genColors(n) {
+  const palette = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6',
+                   '#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4'];
+  return Array.from({length:n}, (_,i) => palette[i % palette.length]);
+}
+</script>
+</body>
+</html>
