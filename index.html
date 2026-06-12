@@ -308,6 +308,16 @@
       <div class="chart-wrap tall"><canvas id="chart-funnel-media"></canvas></div>
     </div>
     <div class="card" style="margin-top:16px">
+      <div class="card-title">媒体別 応募数 月次推移</div>
+      <div class="filter-row">
+        <label>媒体を絞り込む：</label>
+        <select id="funnel-media-monthly-filter" onchange="renderFunnelMediaMonthly()" style="min-width:120px">
+          <option value="all">全媒体</option>
+        </select>
+      </div>
+      <div class="chart-wrap tall"><canvas id="chart-funnel-media-monthly"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px">
       <div class="card-title">月別ファネル推移（応募→書類通過）</div>
       <div class="chart-wrap tall"><canvas id="chart-funnel-monthly"></canvas></div>
     </div>
@@ -484,6 +494,12 @@ function buildFilters() {
   const am = document.getElementById('age-media');
   (D.ageByMedia.mediaList||[]).forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; am.appendChild(o); });
 
+  // Funnel media monthly filter
+  const fmmf = document.getElementById('funnel-media-monthly-filter');
+  Object.keys(D.funnel.byMediaMonthly||{}).sort().forEach(m => {
+    const o = document.createElement('option'); o.value = m; o.textContent = m; fmmf.appendChild(o);
+  });
+
   // Nat media
   const nm = document.getElementById('nat-media');
   (D.nationalityByMedia.nationalityList||[]).forEach(() => {});
@@ -638,6 +654,8 @@ function renderFunnelPage() {
   });
   fmmSel.value = currentVal;
   renderFunnelMediaChart();
+
+  renderFunnelMediaMonthly();
 
   // Monthly funnel line
   const months = sortedMonths();
@@ -894,6 +912,45 @@ function renderPeriodPage() {
     </tr>`;
   }).join('');
   document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+
+function renderFunnelMediaMonthly() {
+  if (!D || !D.funnel || !D.funnel.byMediaMonthly) return;
+  const byMediaMonthly = D.funnel.byMediaMonthly;
+  const sel = document.getElementById('funnel-media-monthly-filter').value;
+  const months = sortedMonths();
+  const labels = months.map(fmtMonth);
+
+  // 表示する媒体リスト
+  const mediaList = sel === 'all'
+    ? Object.keys(byMediaMonthly).sort()
+    : [sel];
+
+  const colors = genColors(mediaList.length);
+  const datasets = mediaList.map((m, i) => ({
+    label: m,
+    data: months.map(mo => (byMediaMonthly[m]||{})[mo] || 0),
+    borderColor: colors[i],
+    backgroundColor: colors[i] + '22',
+    tension: .3,
+    pointRadius: 4,
+    borderWidth: 2,
+    fill: false,
+  }));
+
+  destroyChart('funnel-media-monthly');
+  charts['funnel-media-monthly'] = new Chart(document.getElementById('chart-funnel-media-monthly'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position:'bottom', labels:{font:{size:11}} } },
+      scales: {
+        x: { grid:{color:'#e2e8f0'}, ticks:{font:{size:11}} },
+        y: { beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+'人', font:{size:11}} }
+      }
+    }
+  });
 }
 
 function renderFunnelMediaChart() {
