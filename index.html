@@ -298,6 +298,16 @@
       </div>
     </div>
     <div class="card" style="margin-top:16px">
+      <div class="card-title">媒体別 選考ファネル比較</div>
+      <div class="filter-row">
+        <label>媒体を選択：</label>
+        <select id="funnel-media-filter" onchange="renderFunnelMediaChart()" style="min-width:120px">
+          <option value="all">全媒体（重ねて比較）</option>
+        </select>
+      </div>
+      <div class="chart-wrap tall"><canvas id="chart-funnel-media"></canvas></div>
+    </div>
+    <div class="card" style="margin-top:16px">
       <div class="card-title">月別ファネル推移（応募→書類通過）</div>
       <div class="chart-wrap tall"><canvas id="chart-funnel-monthly"></canvas></div>
     </div>
@@ -465,6 +475,11 @@ function buildFilters() {
   const fm = document.getElementById('funnel-month');
   months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=fmtMonth(m); fm.appendChild(o); });
 
+  // Funnel media
+  const fmm = document.getElementById('funnel-media-filter');
+  const mediaList = Object.keys(D.funnel.byMedia||{}).sort();
+  mediaList.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; fmm.appendChild(o); });
+
   // Age media
   const am = document.getElementById('age-media');
   (D.ageByMedia.mediaList||[]).forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; am.appendChild(o); });
@@ -610,6 +625,8 @@ function renderFunnelPage() {
     },
     options: chartOpts('人')
   });
+
+  renderFunnelMediaChart();
 
   // Monthly funnel line
   const months = sortedMonths();
@@ -866,6 +883,50 @@ function renderPeriodPage() {
     </tr>`;
   }).join('');
   document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+
+function renderFunnelMediaChart() {
+  if (!D || !D.funnel || !D.funnel.byMedia) return;
+  const byMedia = D.funnel.byMedia;
+  const sel = document.getElementById('funnel-media-filter').value;
+  const keys = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
+  const colors = ['#E8001D','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
+
+  let datasets;
+  if (sel === 'all') {
+    // 全媒体をグループ棒グラフで比較
+    const mediaList = Object.keys(byMedia).sort();
+    const mediaColors = genColors(mediaList.length);
+    datasets = mediaList.map((m, i) => ({
+      label: m,
+      data: keys.map(k => byMedia[m][k] || 0),
+      backgroundColor: mediaColors[i] + 'cc',
+      borderRadius: 4,
+    }));
+  } else {
+    // 選択した媒体の単体ファネル
+    const d = byMedia[sel] || {};
+    datasets = [{
+      label: sel,
+      data: keys.map(k => d[k] || 0),
+      backgroundColor: colors,
+      borderRadius: 4,
+    }];
+  }
+
+  destroyChart('funnel-media');
+  charts['funnel-media'] = new Chart(document.getElementById('chart-funnel-media'), {
+    type: 'bar',
+    data: { labels: keys, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position:'bottom', labels:{font:{size:11}} } },
+      scales: {
+        x: { grid:{color:'#e2e8f0'} },
+        y: { beginAtZero:true, ticks:{callback:v=>v+'人'} }
+      }
+    }
+  });
 }
 
 function genColors(n) {
