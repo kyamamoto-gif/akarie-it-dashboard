@@ -6,23 +6,26 @@
 <title>アカリエ IT部門 採用KPIダッシュボード</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  /* ─── Design Tokens ──────────────────────────── */
+  /* ─── Design Tokens（アカリエブランド） ──────────────────────────── */
   :root {
-    --navy:       #1a2744;
-    --navy-mid:   #243159;
-    --navy-light: #2e3f6f;
-    --accent:     #3b82f6;
-    --accent-h:   #60a5fa;
+    --primary:    #E8001D;
+    --primary-d:  #C0001A;
+    --primary-l:  #ff3347;
+    --navy:       #E8001D;
+    --navy-mid:   #C0001A;
+    --navy-light: #ff3347;
+    --accent:     #E8001D;
+    --accent-h:   #ff3347;
     --teal:       #0ea5e9;
     --green:      #22c55e;
     --amber:      #f59e0b;
-    --red:        #ef4444;
-    --bg:         #f0f4f8;
+    --red:        #E8001D;
+    --bg:         #fdf5f5;
     --card:       #ffffff;
-    --border:     #e2e8f0;
-    --text:       #1e293b;
-    --muted:      #64748b;
-    --reach:      #94a3b8;
+    --border:     #fde0e3;
+    --text:       #1a1a1a;
+    --muted:      #666666;
+    --reach:      #999999;
     --font:       'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,31 +34,31 @@
 
   /* ─── Auth overlay ───────────────────────────── */
   #auth-overlay {
-    position: fixed; inset: 0; background: var(--navy);
+    position: fixed; inset: 0; background: #E8001D;
     display: flex; align-items: center; justify-content: center; z-index: 999;
   }
   .auth-box {
-    background: var(--navy-mid); border: 1px solid var(--navy-light);
+    background: #C0001A; border: 1px solid #ff3347;
     border-radius: 12px; padding: 40px 48px; text-align: center;
   }
   .auth-box h2 { color: #fff; font-size: 1.1rem; margin-bottom: 8px; font-weight: 500; }
   .auth-box p  { color: var(--reach); font-size: 0.85rem; margin-bottom: 24px; }
   .auth-box input {
     display: block; width: 100%; padding: 10px 14px; border-radius: 8px;
-    border: 1px solid var(--navy-light); background: var(--navy);
+    border: 1px solid var(--navy-light); background: #b0001a;
     color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none;
   }
   .auth-box input:focus { border-color: var(--accent); }
   .auth-box button {
-    width: 100%; padding: 10px; border-radius: 8px; background: var(--accent);
-    color: #fff; border: none; font-size: 1rem; cursor: pointer; font-family: var(--font);
+    width: 100%; padding: 10px; border-radius: 8px; background: #fff;
+    color: #E8001D; border: none; font-size: 1rem; cursor: pointer; font-family: var(--font); font-weight: 700;
   }
-  .auth-box button:hover { background: var(--accent-h); }
+  .auth-box button:hover { background: #ffeaec; }
   .auth-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; }
 
   /* ─── Header ─────────────────────────────────── */
   header {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    background: linear-gradient(135deg, #E8001D 0%, #C0001A 100%);
     color: #fff; padding: 0 28px;
     display: flex; align-items: center; justify-content: space-between;
     height: 60px; position: sticky; top: 0; z-index: 100;
@@ -63,7 +66,7 @@
   }
   .header-left { display: flex; align-items: center; gap: 14px; }
   .header-badge {
-    background: var(--accent); color: #fff; font-size: 0.7rem;
+    background: #fff; color: #E8001D; font-size: 0.7rem;
     padding: 3px 8px; border-radius: 4px; font-weight: 600; letter-spacing: .04em;
   }
   .header-title { font-size: 1rem; font-weight: 600; letter-spacing: .02em; }
@@ -90,7 +93,7 @@
     font-family: var(--font); font-size: 0.85rem; cursor: pointer; color: var(--muted);
     transition: all .15s;
   }
-  .tab-btn.active { background: var(--navy); color: #fff; font-weight: 600; }
+  .tab-btn.active { background: #b0001a; color: #fff; font-weight: 600; }
   .tab-btn:hover:not(.active) { background: var(--bg); }
 
   /* ─── Cards ──────────────────────────────────── */
@@ -117,7 +120,7 @@
   .kpi-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
   }
-  .kpi-card.blue::before   { background: var(--accent); }
+  .kpi-card.blue::before   { background: #E8001D; }
   .kpi-card.teal::before   { background: var(--teal); }
   .kpi-card.green::before  { background: var(--green); }
   .kpi-card.amber::before  { background: var(--amber); }
@@ -228,7 +231,7 @@
 <!-- ─── Header ───────────────────────────── -->
 <header>
   <div class="header-left">
-    <span class="header-badge">IT部門</span>
+    <img src="https://akarie.co.jp/common/logoring.svg" style="height:28px;filter:brightness(0)invert(1)" onerror="this.style.display='none'"><span class="header-badge">IT部門</span>
     <span class="header-title">採用KPIダッシュボード</span>
   </div>
   <div class="header-right">
@@ -496,8 +499,8 @@ function renderKPICards() {
     { label:'有効応募', value: kpi.有効応募, target: t.有効応募, color:'teal', unit:'' },
     { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'blue', unit:'' },
     { label:'一次実施', value: kpi.一次実施, target: t.一次実施, color:'teal', unit:'' },
-    { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
     { label:'一次通過', value: kpi.一次通過, target: null, color:'teal', unit:'' },
+    { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
     { label:'最終通過', value: kpi.最終通過, target: null, color:'amber', unit:'' },
     { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
     { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
@@ -506,7 +509,7 @@ function renderKPICards() {
   el.innerHTML = cards.map(c => {
     const pct = t[c.label] ? Math.round(c.value / c.target * 100) : 0;
     const cls = pct >= 100 ? 'good' : pct >= 70 ? 'warn' : 'bad';
-    const barColor = c.color === 'blue' ? '#3b82f6' : c.color === 'teal' ? '#0ea5e9' :
+    const barColor = c.color === 'blue' ? '#E8001D' : c.color === 'teal' ? '#0ea5e9' :
                      c.color === 'green' ? '#22c55e' : c.color === 'amber' ? '#f59e0b' :
                      c.color === 'red' ? '#ef4444' : '#8b5cf6';
     return `<div class="kpi-card ${c.color}">
@@ -548,8 +551,8 @@ function renderKPIProgress() {
     { label:'有効応募', val: kpi.有効応募, tgt: t.有効応募, color:'#0ea5e9' },
     { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#3b82f6' },
     { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施, color:'#6366f1' },
-    { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
     { label:'一次通過', val: kpi.一次通過, tgt: null, color:'#0ea5e9' },
+    { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
     { label:'最終通過', val: kpi.最終通過, tgt: null, color:'#f59e0b' },
     { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
     { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
