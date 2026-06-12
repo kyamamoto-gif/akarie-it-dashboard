@@ -34,26 +34,26 @@
 
   /* ─── Auth overlay ───────────────────────────── */
   #auth-overlay {
-    position: fixed; inset: 0; background: #E8001D;
+    position: fixed; inset: 0; background: #ffffff;
     display: flex; align-items: center; justify-content: center; z-index: 999;
   }
   .auth-box {
-    background: #C0001A; border: 1px solid #ff3347;
+    background: #ffffff; border: 2px solid #E8001D;
     border-radius: 12px; padding: 40px 48px; text-align: center;
   }
-  .auth-box h2 { color: #fff; font-size: 1.1rem; margin-bottom: 8px; font-weight: 500; }
-  .auth-box p  { color: var(--reach); font-size: 0.85rem; margin-bottom: 24px; }
+  .auth-box h2 { color: #1a1a1a; font-size: 1.1rem; margin-bottom: 8px; font-weight: 500; }
+  .auth-box p  { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
   .auth-box input {
     display: block; width: 100%; padding: 10px 14px; border-radius: 8px;
-    border: 1px solid var(--navy-light); background: #b0001a;
+    border: 1px solid var(--navy-light); background: #fff5f5;
     color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none;
   }
   .auth-box input:focus { border-color: var(--accent); }
   .auth-box button {
-    width: 100%; padding: 10px; border-radius: 8px; background: #fff;
-    color: #E8001D; border: none; font-size: 1rem; cursor: pointer; font-family: var(--font); font-weight: 700;
+    width: 100%; padding: 10px; border-radius: 8px; background: #E8001D;
+    color: #fff; border: none; font-size: 1rem; cursor: pointer; font-family: var(--font); font-weight: 700;
   }
-  .auth-box button:hover { background: #ffeaec; }
+  .auth-box button:hover { background: #C0001A; }
   .auth-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; }
 
   /* ─── Header ─────────────────────────────────── */
@@ -93,7 +93,7 @@
     font-family: var(--font); font-size: 0.85rem; cursor: pointer; color: var(--muted);
     transition: all .15s;
   }
-  .tab-btn.active { background: #b0001a; color: #fff; font-weight: 600; }
+  .tab-btn.active { background: #fff5f5; color: #fff; font-weight: 600; }
   .tab-btn:hover:not(.active) { background: var(--bg); }
 
   /* ─── Cards ──────────────────────────────────── */
@@ -499,9 +499,9 @@ function renderKPICards() {
     { label:'有効応募', value: kpi.有効応募, target: t.有効応募, color:'teal', unit:'' },
     { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'blue', unit:'' },
     { label:'一次実施', value: kpi.一次実施, target: t.一次実施, color:'teal', unit:'' },
-    { label:'一次通過', value: kpi.一次通過, target: null, color:'teal', unit:'' },
+    { label:'一次通過', value: kpi.一次通過, target: t.一次通過, color:'teal', unit:'' },
     { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
-    { label:'最終通過', value: kpi.最終通過, target: null, color:'amber', unit:'' },
+    { label:'最終通過', value: kpi.最終通過, target: t.最終通過, color:'amber', unit:'' },
     { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
     { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
   ];
@@ -551,9 +551,9 @@ function renderKPIProgress() {
     { label:'有効応募', val: kpi.有効応募, tgt: t.有効応募, color:'#0ea5e9' },
     { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#3b82f6' },
     { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施, color:'#6366f1' },
-    { label:'一次通過', val: kpi.一次通過, tgt: null, color:'#0ea5e9' },
+    { label:'一次通過', val: kpi.一次通過, tgt: t.一次通過, color:'#0ea5e9' },
     { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
-    { label:'最終通過', val: kpi.最終通過, tgt: null, color:'#f59e0b' },
+    { label:'最終通過', val: kpi.最終通過, tgt: t.最終通過, color:'#f59e0b' },
     { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
     { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
   ];
