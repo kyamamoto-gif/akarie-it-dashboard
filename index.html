@@ -958,10 +958,34 @@ function renderFunnelMediaChart() {
     data: { labels: keys, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position:'bottom', labels:{font:{size:11}} } },
+      plugins: {
+        legend: { position:'bottom', labels:{font:{size:11}} },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '人' } }
+      },
       scales: {
         x: { grid:{color:'#e2e8f0'} },
         y: { beginAtZero:true, ticks:{callback:v=>v+'人'} }
+      },
+      animation: {
+        onComplete: function() {
+          const chart = this;
+          const ctx = chart.ctx;
+          ctx.font = 'bold 11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          chart.data.datasets.forEach((dataset, i) => {
+            const meta = chart.getDatasetMeta(i);
+            if (!meta.hidden) {
+              meta.data.forEach((bar, j) => {
+                const val = dataset.data[j];
+                if (val > 0) {
+                  ctx.fillStyle = '#333';
+                  ctx.fillText(val, bar.x, bar.y - 3);
+                }
+              });
+            }
+          });
+        }
       }
     }
   });
