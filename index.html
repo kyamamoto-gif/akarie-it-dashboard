@@ -488,12 +488,6 @@ function buildFilters() {
   const am = document.getElementById('age-media');
   (D.ageByMedia.mediaList||[]).forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; am.appendChild(o); });
 
-  // Funnel media monthly filter
-  const fmmf = document.getElementById('funnel-media-monthly-filter');
-  Object.keys(D.funnel.byMediaMonthly||{}).sort().forEach(m => {
-    const o = document.createElement('option'); o.value = m; o.textContent = m; fmmf.appendChild(o);
-  });
-
   // Nat media
   const nm = document.getElementById('nat-media');
   (D.nationalityByMedia.nationalityList||[]).forEach(() => {});
