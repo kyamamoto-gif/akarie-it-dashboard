@@ -300,22 +300,16 @@
     <div class="card" style="margin-top:16px">
       <div class="card-title">媒体別 選考ファネル比較</div>
       <div class="filter-row">
-        <label>媒体を選択：</label>
+        <label>月：</label>
+        <select id="funnel-media-month" onchange="renderFunnelMediaChart()" style="min-width:100px">
+          <option value="all">全期間</option>
+        </select>
+        <label style="margin-left:12px">媒体：</label>
         <select id="funnel-media-filter" onchange="renderFunnelMediaChart()" style="min-width:120px">
           <option value="all">全媒体（重ねて比較）</option>
         </select>
       </div>
       <div class="chart-wrap tall"><canvas id="chart-funnel-media"></canvas></div>
-    </div>
-    <div class="card" style="margin-top:16px">
-      <div class="card-title">媒体別 応募数 月次推移</div>
-      <div class="filter-row">
-        <label>媒体を絞り込む：</label>
-        <select id="funnel-media-monthly-filter" onchange="renderFunnelMediaMonthly()" style="min-width:120px">
-          <option value="all">全媒体</option>
-        </select>
-      </div>
-      <div class="chart-wrap tall"><canvas id="chart-funnel-media-monthly"></canvas></div>
     </div>
     <div class="card" style="margin-top:16px">
       <div class="card-title">月別ファネル推移（応募→書類通過）</div>
@@ -914,68 +908,42 @@ function renderPeriodPage() {
   document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
 }
 
-function renderFunnelMediaMonthly() {
-  if (!D || !D.funnel || !D.funnel.byMediaMonthly) return;
-  const byMediaMonthly = D.funnel.byMediaMonthly;
-  const sel = document.getElementById('funnel-media-monthly-filter').value;
-  const months = sortedMonths();
-  const labels = months.map(fmtMonth);
-
-  // 表示する媒体リスト
-  const mediaList = sel === 'all'
-    ? Object.keys(byMediaMonthly).sort()
-    : [sel];
-
-  const colors = genColors(mediaList.length);
-  const datasets = mediaList.map((m, i) => ({
-    label: m,
-    data: months.map(mo => (byMediaMonthly[m]||{})[mo] || 0),
-    borderColor: colors[i],
-    backgroundColor: colors[i] + '22',
-    tension: .3,
-    pointRadius: 4,
-    borderWidth: 2,
-    fill: false,
-  }));
-
-  destroyChart('funnel-media-monthly');
-  charts['funnel-media-monthly'] = new Chart(document.getElementById('chart-funnel-media-monthly'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position:'bottom', labels:{font:{size:11}} } },
-      scales: {
-        x: { grid:{color:'#e2e8f0'}, ticks:{font:{size:11}} },
-        y: { beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+'人', font:{size:11}} }
-      }
-    }
-  });
-}
 
 function renderFunnelMediaChart() {
-  if (!D || !D.funnel || !D.funnel.byMedia) return;
-  const byMedia = D.funnel.byMedia;
-  const sel = document.getElementById('funnel-media-filter').value;
+  if (!D || !D.funnel) return;
+  const selMonth = document.getElementById('funnel-media-month').value;
+  const selMedia = document.getElementById('funnel-media-filter').value;
   const keys = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
   const colors = ['#E8001D','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
 
+  // 月別 or 全期間のbyMediaを取得
+  let byMedia;
+  if (selMonth === 'all') {
+    byMedia = D.funnel.byMedia || {};
+  } else {
+    // 月別：byMediaMonthlyから該当月のファネルデータを取得
+    byMedia = {};
+    const bMM = D.funnel.byMediaMonthly || {};
+    Object.keys(bMM).forEach(med => {
+      if (bMM[med][selMonth]) byMedia[med] = bMM[med][selMonth];
+    });
+  }
+
+  const mediaList = Object.keys(byMedia).sort();
+  const mediaColors = genColors(mediaList.length);
+
   let datasets;
-  if (sel === 'all') {
-    // 全媒体をグループ棒グラフで比較
-    const mediaList = Object.keys(byMedia).sort();
-    const mediaColors = genColors(mediaList.length);
+  if (selMedia === 'all') {
     datasets = mediaList.map((m, i) => ({
       label: m,
-      data: keys.map(k => byMedia[m][k] || 0),
+      data: keys.map(k => (byMedia[m]||{})[k] || 0),
       backgroundColor: mediaColors[i] + 'cc',
       borderRadius: 4,
     }));
   } else {
-    // 選択した媒体の単体ファネル
-    const d = byMedia[sel] || {};
+    const d = byMedia[selMedia] || {};
     datasets = [{
-      label: sel,
+      label: selMedia,
       data: keys.map(k => d[k] || 0),
       backgroundColor: colors,
       borderRadius: 4,
