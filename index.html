@@ -626,6 +626,17 @@ function renderFunnelPage() {
     options: chartOpts('人')
   });
 
+  // 媒体フィルター更新（初回・毎回）
+  const fmmSel = document.getElementById('funnel-media-filter');
+  const currentVal = fmmSel.value;
+  // オプションをリセットして再構築
+  while (fmmSel.options.length > 1) fmmSel.remove(1);
+  Object.keys(D.funnel.byMedia||{}).sort().forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    fmmSel.appendChild(o);
+  });
+  fmmSel.value = currentVal;
   renderFunnelMediaChart();
 
   // Monthly funnel line
