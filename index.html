@@ -641,9 +641,17 @@ function renderFunnelPage() {
     fmmSel.appendChild(o);
   });
   fmmSel.value = currentVal;
-  renderFunnelMediaChart();
 
-  renderFunnelMediaMonthly();
+  // 媒体×月フィルター更新
+  const fmmMonth = document.getElementById('funnel-media-month');
+  const currentMonth = fmmMonth.value;
+  while (fmmMonth.options.length > 1) fmmMonth.remove(1);
+  sortedMonths().forEach(m => {
+    const o = document.createElement('option'); o.value = m; o.textContent = fmtMonth(m); fmmMonth.appendChild(o);
+  });
+  fmmMonth.value = currentMonth;
+
+  renderFunnelMediaChart();
 
   // Monthly funnel line
   const months = sortedMonths();
