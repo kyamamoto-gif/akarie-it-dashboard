@@ -6,7 +6,6 @@
 <title>アカリエ IT部門 採用KPIダッシュボード</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  /* ─── Design Tokens（アカリエブランド） ──────────────────────────── */
   :root {
     --primary:    #E8001D;
     --primary-d:  #C0001A;
@@ -32,7 +31,6 @@
   html { font-size: 14px; }
   body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* ─── Auth overlay ───────────────────────────── */
   #auth-overlay {
     position: fixed; inset: 0; background: #ffffff;
     display: flex; align-items: center; justify-content: center; z-index: 999;
@@ -46,7 +44,7 @@
   .auth-box input {
     display: block; width: 100%; padding: 10px 14px; border-radius: 8px;
     border: 1px solid var(--navy-light); background: #fff5f5;
-    color: #fff; font-size: 1rem; margin-bottom: 12px; outline: none;
+    color: #1a1a1a; font-size: 1rem; margin-bottom: 12px; outline: none;
   }
   .auth-box input:focus { border-color: var(--accent); }
   .auth-box button {
@@ -56,7 +54,6 @@
   .auth-box button:hover { background: #C0001A; }
   .auth-error { color: var(--red); font-size: 0.8rem; margin-top: 8px; }
 
-  /* ─── Header ─────────────────────────────────── */
   header {
     background: linear-gradient(135deg, #E8001D 0%, #C0001A 100%);
     color: #fff; padding: 0 28px;
@@ -71,7 +68,7 @@
   }
   .header-title { font-size: 1rem; font-weight: 600; letter-spacing: .02em; }
   .header-right { display: flex; align-items: center; gap: 20px; }
-  #update-time { font-size: 0.75rem; color: var(--reach); }
+  #update-time { font-size: 0.75rem; color: rgba(255,255,255,.7); }
   #refresh-btn {
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
     color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer;
@@ -79,10 +76,8 @@
   }
   #refresh-btn:hover { background: rgba(255,255,255,.2); }
 
-  /* ─── Layout ─────────────────────────────────── */
   main { max-width: 1400px; margin: 0 auto; padding: 24px 24px 48px; }
 
-  /* ─── Nav tabs ───────────────────────────────── */
   .tabs {
     display: flex; gap: 4px; margin-bottom: 24px;
     background: var(--card); border-radius: 10px; padding: 5px;
@@ -93,10 +88,9 @@
     font-family: var(--font); font-size: 0.85rem; cursor: pointer; color: var(--muted);
     transition: all .15s;
   }
-  .tab-btn.active { background: #fff5f5; color: #fff; font-weight: 600; }
+  .tab-btn.active { background: #E8001D; color: #fff; font-weight: 600; }
   .tab-btn:hover:not(.active) { background: var(--bg); }
 
-  /* ─── Cards ──────────────────────────────────── */
   .card {
     background: var(--card); border-radius: 12px; padding: 20px 24px;
     box-shadow: 0 1px 4px rgba(0,0,0,.06); border: 1px solid var(--border);
@@ -106,10 +100,8 @@
     text-transform: uppercase; letter-spacing: .07em; margin-bottom: 16px;
   }
 
-  /* ─── KPI grid ───────────────────────────────── */
   .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
     gap: 14px; margin-bottom: 20px;
   }
   .kpi-card {
@@ -137,23 +129,18 @@
   .kpi-pct.warn  { background: #fef9c3; color: #a16207; }
   .kpi-pct.bad   { background: #fee2e2; color: #b91c1c; }
 
-  /* ─── Progress bar ───────────────────────────── */
   .progress-wrap { margin-top: 8px; }
-  .progress-bar  {
-    height: 5px; border-radius: 9px; background: var(--border); overflow: hidden;
-  }
+  .progress-bar  { height: 5px; border-radius: 9px; background: var(--border); overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 9px; transition: width .6s ease; }
 
-  /* ─── Two-col layout ─────────────────────────── */
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .five-col { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 16px; }
 
-  /* ─── Chart containers ───────────────────────── */
   .chart-wrap { position: relative; height: 260px; }
   .chart-wrap.tall { height: 320px; }
   .chart-wrap.short { height: 200px; }
 
-  /* ─── Funnel ─────────────────────────────────── */
   .funnel-bars { display: flex; flex-direction: column; gap: 10px; }
   .funnel-row { display: grid; grid-template-columns: 80px 1fr 90px; align-items: center; gap: 10px; }
   .funnel-label { font-size: 0.78rem; color: var(--muted); text-align: right; }
@@ -161,12 +148,10 @@
   .funnel-fill {
     height: 100%; border-radius: 6px; display: flex; align-items: center;
     padding-left: 10px; font-size: 0.75rem; font-weight: 600; color: #fff;
-    transition: width .7s cubic-bezier(.4,0,.2,1);
-    min-width: 40px;
+    transition: width .7s cubic-bezier(.4,0,.2,1); min-width: 40px;
   }
   .funnel-meta { font-size: 0.75rem; color: var(--muted); }
 
-  /* ─── Select/Filter ──────────────────────────── */
   .filter-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
   .filter-row label { font-size: 0.78rem; color: var(--muted); }
   .filter-row select {
@@ -176,7 +161,6 @@
   }
   .filter-row select:focus { border-color: var(--accent); }
 
-  /* ─── Month table ────────────────────────────── */
   .monthly-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
   .monthly-table th {
     background: var(--bg); padding: 8px 10px; text-align: center;
@@ -189,11 +173,9 @@
   .monthly-table td.hit  { background: #dcfce7; color: #15803d; font-weight: 600; }
   .monthly-table td.miss { background: #fee2e2; color: #b91c1c; }
 
-  /* ─── Section page ───────────────────────────── */
   .page { display: none; }
   .page.active { display: block; }
 
-  /* ─── Loading ────────────────────────────────── */
   #loading {
     display: flex; align-items: center; justify-content: center;
     height: 300px; color: var(--muted); gap: 10px;
@@ -205,19 +187,12 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ─── Responsive ─────────────────────────────── */
-  @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } }
-  @media (max-width: 700px)  { .kpi-grid { grid-template-columns: repeat(2,1fr); } .two-col,.three-col { grid-template-columns: 1fr; } }
-
-  /* ─── Legend dots ────────────────────────────── */
-  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } .five-col { grid-template-columns: repeat(3,1fr); } }
+  @media (max-width: 700px)  { .kpi-grid { grid-template-columns: repeat(2,1fr); } .two-col,.three-col,.five-col { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
-<!-- ─── Auth ─────────────────────────────── -->
 <div id="auth-overlay">
   <div class="auth-box">
     <h2>アカリエ IT部門</h2>
@@ -228,10 +203,10 @@
   </div>
 </div>
 
-<!-- ─── Header ───────────────────────────── -->
 <header>
   <div class="header-left">
-    <img src="https://akarie.co.jp/common/logoring.svg" style="height:28px;filter:brightness(0)invert(1)" onerror="this.style.display='none'"><span class="header-badge">IT部門</span>
+    <img src="https://akarie.co.jp/common/logoring.svg" style="height:28px;filter:brightness(0)invert(1)" onerror="this.style.display='none'">
+    <span class="header-badge">IT部門</span>
     <span class="header-title">採用KPIダッシュボード</span>
   </div>
   <div class="header-right">
@@ -241,8 +216,6 @@
 </header>
 
 <main id="main-content" style="display:none">
-
-  <!-- Nav tabs -->
   <div class="tabs">
     <button class="tab-btn active" onclick="showPage('overview',this)">📊 概要・KPI</button>
     <button class="tab-btn" onclick="showPage('funnel',this)">🔽 選考ファネル</button>
@@ -252,16 +225,11 @@
     <button class="tab-btn" onclick="showPage('period',this)">⏱️ 期間分析</button>
   </div>
 
-  <!-- Loading -->
   <div id="loading"><div class="spinner"></div>データを読み込んでいます…</div>
 
-  <!-- ━━━ PAGE: 概要・KPI ━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: 概要 -->
   <div id="page-overview" class="page">
-
-    <!-- KPI cards -->
     <div class="kpi-grid" id="kpi-cards"></div>
-
-    <!-- 月別応募 chart + 進捗 -->
     <div class="two-col">
       <div class="card">
         <div class="card-title">月別応募数 vs 目標</div>
@@ -272,20 +240,13 @@
         <div id="kpi-progress"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- ━━━ PAGE: 選考ファネル ━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: ファネル -->
   <div id="page-funnel" class="page">
     <div class="filter-row">
-      <label>期間：</label>
-      <select id="funnel-period" onchange="renderFunnelPage()">
-        <option value="all">全期間</option>
-      </select>
-      <label style="margin-left:12px">月：</label>
-      <select id="funnel-month" onchange="renderFunnelPage()">
-        <option value="all">全月</option>
-      </select>
+      <label>月：</label>
+      <select id="funnel-month" onchange="renderFunnelPage()"><option value="all">全月</option></select>
     </div>
     <div class="two-col">
       <div class="card">
@@ -301,29 +262,23 @@
       <div class="card-title">媒体別 選考ファネル比較</div>
       <div class="filter-row">
         <label>月：</label>
-        <select id="funnel-media-month" onchange="renderFunnelMediaChart()" style="min-width:100px">
-          <option value="all">全期間</option>
-        </select>
+        <select id="funnel-media-month" onchange="renderFunnelMediaChart()" style="min-width:100px"><option value="all">全期間</option></select>
         <label style="margin-left:12px">媒体：</label>
-        <select id="funnel-media-filter" onchange="renderFunnelMediaChart()" style="min-width:120px">
-          <option value="all">全媒体（重ねて比較）</option>
-        </select>
+        <select id="funnel-media-filter" onchange="renderFunnelMediaChart()" style="min-width:120px"><option value="all">全媒体</option></select>
       </div>
       <div class="chart-wrap tall"><canvas id="chart-funnel-media"></canvas></div>
     </div>
     <div class="card" style="margin-top:16px">
-      <div class="card-title">月別ファネル推移（応募→書類通過）</div>
+      <div class="card-title">月別ファネル推移</div>
       <div class="chart-wrap tall"><canvas id="chart-funnel-monthly"></canvas></div>
     </div>
   </div>
 
-  <!-- ━━━ PAGE: 年代別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: 年代別 -->
   <div id="page-age" class="page">
     <div class="filter-row">
       <label>媒体：</label>
-      <select id="age-media" onchange="renderAgePage()">
-        <option value="all">すべて</option>
-      </select>
+      <select id="age-media" onchange="renderAgePage()"><option value="all">すべて</option></select>
     </div>
     <div class="two-col">
       <div class="card">
@@ -341,13 +296,11 @@
     </div>
   </div>
 
-  <!-- ━━━ PAGE: 国籍別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: 国籍別 -->
   <div id="page-nationality" class="page">
     <div class="filter-row">
       <label>媒体：</label>
-      <select id="nat-media" onchange="renderNatPage()">
-        <option value="all">すべて</option>
-      </select>
+      <select id="nat-media" onchange="renderNatPage()"><option value="all">すべて</option></select>
     </div>
     <div class="two-col">
       <div class="card">
@@ -365,7 +318,7 @@
     </div>
   </div>
 
-  <!-- ━━━ PAGE: 月別詳細 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: 月別詳細 -->
   <div id="page-monthly" class="page">
     <div class="card">
       <div class="card-title">月別 応募数・目標・達成率</div>
@@ -377,12 +330,12 @@
     </div>
   </div>
 
-
-  <!-- ━━━ PAGE: 期間分析 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- PAGE: 期間分析 -->
   <div id="page-period" class="page">
-    <div class="three-col" id="period-summary"></div>
+    <!-- サマリーカード5枚 -->
+    <div class="five-col" id="period-summary"></div>
     <div class="card" style="margin-top:16px">
-      <div class="card-title">月別 平均日数推移</div>
+      <div class="card-title">月別 平均日数推移（全5指標）</div>
       <div class="chart-wrap tall"><canvas id="chart-period-monthly"></canvas></div>
     </div>
     <div class="card" style="margin-top:16px">
@@ -393,15 +346,9 @@
 </main>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Config — GASデプロイ後にURLを差し替えてください
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgyfPQQe7RhqasxnSXmM1WLf3svLsvfqK6eo1wFlMLFmtlg485dTGH3JyPdtlFUmllnw/exec';
+const GAS_URL = 'YOUR_GAS_URL_HERE';
 const PASSWORD = 'akarie2026';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Auth
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
 function checkPassword() {
   const v = document.getElementById('pw-input').value;
@@ -414,19 +361,12 @@ function checkPassword() {
   }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Global state
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let D = null; // loaded data
+let D = null;
 const charts = {};
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Data load
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function loadData() {
   document.getElementById('loading').style.display = 'flex';
   hidePages();
-  // JSONP経由でGASを叩く
   const cbName = '_cb_' + Date.now();
   const script = document.createElement('script');
   window[cbName] = function(data) {
@@ -436,7 +376,7 @@ function loadData() {
     onDataLoaded();
   };
   script.onerror = function() {
-    document.getElementById('loading').innerHTML = '<span style="color:var(--red)">GAS URLを設定してください (index.html の GAS_URL を更新)</span>';
+    document.getElementById('loading').innerHTML = '<span style="color:var(--red)">GAS URLを設定してください</span>';
   };
   script.src = GAS_URL + '?callback=' + cbName;
   document.body.appendChild(script);
@@ -451,9 +391,6 @@ function onDataLoaded() {
   showPage('overview', document.querySelector('.tab-btn'));
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Page nav
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -469,41 +406,30 @@ function showPage(name, btn) {
 }
 function hidePages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Build dropdown filters
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function buildFilters() {
   const months = sortedMonths();
 
-  // Funnel month
   const fm = document.getElementById('funnel-month');
   months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=fmtMonth(m); fm.appendChild(o); });
 
-  // Funnel media
   const fmm = document.getElementById('funnel-media-filter');
-  const mediaList = Object.keys(D.funnel.byMedia||{}).sort();
-  mediaList.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; fmm.appendChild(o); });
+  Object.keys(D.funnel.byMedia||{}).sort().forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; fmm.appendChild(o); });
 
-  // Age media
+  const fmmMonth = document.getElementById('funnel-media-month');
+  months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=fmtMonth(m); fmmMonth.appendChild(o); });
+
   const am = document.getElementById('age-media');
   (D.ageByMedia.mediaList||[]).forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; am.appendChild(o); });
 
-  // Nat media
   const nm = document.getElementById('nat-media');
-  (D.nationalityByMedia.nationalityList||[]).forEach(() => {});
-  // media list from byMedia keys
   Object.keys(D.nationalityByMedia.byMedia||{}).sort().forEach(m => {
     const o=document.createElement('option'); o.value=m; o.textContent=m; nm.appendChild(o);
   });
 }
 
-function sortedMonths() {
-  return Object.keys(D.funnel.monthly||{}).sort();
-}
+function sortedMonths() { return Object.keys(D.funnel.monthly||{}).sort(); }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: 概要
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━ 概要 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderOverview() {
   renderKPICards();
   renderMonthlyBar();
@@ -511,52 +437,45 @@ function renderOverview() {
 }
 
 function renderKPICards() {
-  const kpi = D.kpi;
-  const t   = D.targets;
+  const kpi = D.kpi, t = D.targets;
   const cards = [
-    { label:'応募数', value: kpi.応募数, target: t.応募, color:'blue', unit:'' },
-    { label:'有効応募', value: kpi.有効応募, target: t.有効応募, color:'teal', unit:'' },
-    { label:'書類通過', value: kpi.書類通過, target: t.書類通過, color:'blue', unit:'' },
-    { label:'一次実施', value: kpi.一次実施, target: t.一次実施, color:'teal', unit:'' },
-    { label:'一次通過', value: kpi.一次通過, target: t.一次通過, color:'teal', unit:'' },
-    { label:'最終実施', value: kpi.最終実施, target: t.最終実施, color:'amber', unit:'' },
-    { label:'最終通過', value: kpi.最終通過, target: t.最終通過, color:'amber', unit:'' },
-    { label:'内定', value: kpi.内定数, target: t.内定, color:'green', unit:'' },
-    { label:'入社', value: kpi.入社数, target: t.入社, color:'purple', unit:'' },
+    { label:'応募数',   value: kpi.応募数,   target: t.応募,      color:'blue' },
+    { label:'有効応募', value: kpi.有効応募, target: t.有効応募,  color:'teal' },
+    { label:'書類通過', value: kpi.書類通過, target: t.書類通過,  color:'blue' },
+    { label:'一次実施', value: kpi.一次実施, target: t.一次実施,  color:'teal' },
+    { label:'一次通過', value: kpi.一次通過, target: t.一次通過,  color:'teal' },
+    { label:'最終実施', value: kpi.最終実施, target: t.最終実施,  color:'amber' },
+    { label:'最終通過', value: kpi.最終通過, target: t.最終通過,  color:'amber' },
+    { label:'内定',     value: kpi.内定数,   target: t.内定,      color:'green' },
+    { label:'入社',     value: kpi.入社数,   target: t.入社,      color:'purple' },
   ];
-  const el = document.getElementById('kpi-cards');
-  el.innerHTML = cards.map(c => {
-    const pct = t[c.label] ? Math.round(c.value / c.target * 100) : 0;
+  const colorMap = { blue:'#E8001D', teal:'#0ea5e9', green:'#22c55e', amber:'#f59e0b', purple:'#8b5cf6' };
+  document.getElementById('kpi-cards').innerHTML = cards.map(c => {
+    const pct = c.target ? Math.round(c.value / c.target * 100) : 0;
     const cls = pct >= 100 ? 'good' : pct >= 70 ? 'warn' : 'bad';
-    const barColor = c.color === 'blue' ? '#E8001D' : c.color === 'teal' ? '#0ea5e9' :
-                     c.color === 'green' ? '#22c55e' : c.color === 'amber' ? '#f59e0b' :
-                     c.color === 'red' ? '#ef4444' : '#8b5cf6';
+    const bc  = colorMap[c.color] || '#E8001D';
     return `<div class="kpi-card ${c.color}">
       <div class="kpi-label">${c.label}</div>
-      <div class="kpi-value">${c.value}<span style="font-size:.9rem;font-weight:400">${c.unit}</span></div>
-      ${c.target != null ? `<div class="kpi-target">目標 ${c.target}${c.unit}</div>` : ""}
-      ${pct != null ? `<div class="kpi-pct ${cls}">${pct}%</div><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${barColor}"></div></div></div>` : ""}
+      <div class="kpi-value">${c.value}</div>
+      <div class="kpi-target">目標 ${c.target}</div>
+      <div class="kpi-pct ${cls}">${pct}%</div>
+      <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pct,100)}%;background:${bc}"></div></div></div>
     </div>`;
   }).join('');
 }
 
 function renderMonthlyBar() {
   const months = allFiscalMonths();
-  const actual = months.map(m => D.monthly[m] || 0);
-  const targets = months.map(m => {
-    const mo = parseInt(m.split('-')[1]);
-    return D.monthlyTargets[mo] || 0;
-  });
-  const labels = months.map(m => fmtMonth(m));
+  const actual  = months.map(m => D.monthly[m] || 0);
+  const targets = months.map(m => D.monthlyTargets[parseInt(m.split('-')[1])] || 0);
   destroyChart('monthly-bar');
   charts['monthly-bar'] = new Chart(document.getElementById('chart-monthly-bar'), {
     type: 'bar',
     data: {
-      labels,
+      labels: months.map(fmtMonth),
       datasets: [
-        { label:'実績', data: actual, backgroundColor: 'rgba(59,130,246,.7)', borderRadius: 5 },
-        { label:'目標', data: targets, type:'line', borderColor:'#f59e0b', borderWidth:2,
-          pointBackgroundColor:'#f59e0b', fill:false, tension:.3 },
+        { label:'実績', data: actual, backgroundColor:'rgba(232,0,29,.65)', borderRadius:5 },
+        { label:'目標', data: targets, type:'line', borderColor:'#f59e0b', borderWidth:2, pointBackgroundColor:'#f59e0b', fill:false, tension:.3 },
       ]
     },
     options: chartOpts('人')
@@ -566,20 +485,20 @@ function renderMonthlyBar() {
 function renderKPIProgress() {
   const kpi = D.kpi, t = D.targets;
   const items = [
-    { label:'応募数', val: kpi.応募数, tgt: t.応募, color:'#3b82f6' },
-    { label:'有効応募', val: kpi.有効応募, tgt: t.有効応募, color:'#0ea5e9' },
-    { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過, color:'#3b82f6' },
-    { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施, color:'#6366f1' },
-    { label:'一次通過', val: kpi.一次通過, tgt: t.一次通過, color:'#0ea5e9' },
-    { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施, color:'#f59e0b' },
-    { label:'最終通過', val: kpi.最終通過, tgt: t.最終通過, color:'#f59e0b' },
-    { label:'内定', val: kpi.内定数, tgt: t.内定, color:'#22c55e' },
-    { label:'入社', val: kpi.入社数, tgt: t.入社, color:'#8b5cf6' },
+    { label:'応募数',   val: kpi.応募数,   tgt: t.応募,      color:'#E8001D' },
+    { label:'有効応募', val: kpi.有効応募, tgt: t.有効応募,  color:'#0ea5e9' },
+    { label:'書類通過', val: kpi.書類通過, tgt: t.書類通過,  color:'#3b82f6' },
+    { label:'一次実施', val: kpi.一次実施, tgt: t.一次実施,  color:'#6366f1' },
+    { label:'一次通過', val: kpi.一次通過, tgt: t.一次通過,  color:'#0ea5e9' },
+    { label:'最終実施', val: kpi.最終実施, tgt: t.最終実施,  color:'#f59e0b' },
+    { label:'最終通過', val: kpi.最終通過, tgt: t.最終通過,  color:'#f59e0b' },
+    { label:'内定',     val: kpi.内定数,   tgt: t.内定,      color:'#22c55e' },
+    { label:'入社',     val: kpi.入社数,   tgt: t.入社,      color:'#8b5cf6' },
   ];
   document.getElementById('kpi-progress').innerHTML = `
     <div class="funnel-bars" style="margin-top:8px">
     ${items.map(i => {
-      const pct = (i.tgt != null && i.tgt > 0) ? Math.min(Math.round(i.val/i.tgt*100),100) : null;
+      const pct = (i.tgt > 0) ? Math.min(Math.round(i.val/i.tgt*100), 100) : 0;
       return `<div class="funnel-row">
         <div class="funnel-label">${i.label}</div>
         <div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:${i.color}">${i.val}</div></div>
@@ -589,9 +508,7 @@ function renderKPIProgress() {
     </div>`;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: ファネル
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━ ファネル ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderFunnelPage() {
   if (!D) return;
   const selMonth = document.getElementById('funnel-month').value;
@@ -602,219 +519,237 @@ function renderFunnelPage() {
   } else {
     if (fm[selMonth]) Object.keys(agg).forEach(k => agg[k]=(fm[selMonth][k]||0));
   }
-  // Funnel bars
   const max = agg.応募 || 1;
-  const colors = ['#3b82f6','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
-  const keys = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
+  const colors = ['#E8001D','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
+  const keys   = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
   document.getElementById('funnel-actual').innerHTML = keys.map((k,i) => `
     <div class="funnel-row">
       <div class="funnel-label">${k}</div>
       <div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(agg[k]/max*100)}%;background:${colors[i]}">${agg[k]}</div></div>
-      <div class="funnel-meta">${i>0?'前工程比 '+pct2(agg[k],i===1?agg.応募:agg[keys[i-1]])+'%':''}</div>
+      <div class="funnel-meta">${i>0 ? '前工程比 '+pct2(agg[k], agg[keys[i-1]])+'%' : ''}</div>
     </div>`).join('');
 
-  // Compare chart
   const t = D.targets;
-  const tgtVals = [t.応募, t.有効応募, t.書類通過, t.一次実施, t.最終実施, t.内定, t.入社];
-  const actVals = keys.map(k => agg[k]);
   destroyChart('funnel-compare');
   charts['funnel-compare'] = new Chart(document.getElementById('chart-funnel-compare'), {
     type: 'bar',
     data: {
       labels: keys,
       datasets: [
-        { label:'目標', data: tgtVals, backgroundColor:'rgba(100,116,139,.3)', borderRadius:4 },
-        { label:'実績', data: actVals, backgroundColor: colors, borderRadius:4 },
+        { label:'目標', data:[t.応募,t.有効応募,t.書類通過,t.一次実施,t.最終実施,t.内定,t.入社], backgroundColor:'rgba(100,116,139,.3)', borderRadius:4 },
+        { label:'実績', data:keys.map(k=>agg[k]), backgroundColor:colors, borderRadius:4 },
       ]
     },
     options: chartOpts('人')
   });
 
-  // 媒体フィルター更新（初回・毎回）
-  const fmmSel = document.getElementById('funnel-media-filter');
-  const currentVal = fmmSel.value;
-  // オプションをリセットして再構築
-  while (fmmSel.options.length > 1) fmmSel.remove(1);
-  Object.keys(D.funnel.byMedia||{}).sort().forEach(m => {
-    const o = document.createElement('option');
-    o.value = m; o.textContent = m;
-    fmmSel.appendChild(o);
-  });
-  fmmSel.value = currentVal;
-
-  // 媒体×月フィルター更新
-  const fmmMonth = document.getElementById('funnel-media-month');
-  const currentMonth = fmmMonth.value;
-  while (fmmMonth.options.length > 1) fmmMonth.remove(1);
-  sortedMonths().forEach(m => {
-    const o = document.createElement('option'); o.value = m; o.textContent = fmtMonth(m); fmmMonth.appendChild(o);
-  });
-  fmmMonth.value = currentMonth;
-
   renderFunnelMediaChart();
 
-  // Monthly funnel line
   const months = sortedMonths();
   const datasets = keys.slice(0,5).map((k,i) => ({
-    label: k, data: months.map(m => (fm[m]||{})[k]||0),
-    borderColor: colors[i], backgroundColor: colors[i]+'22', fill: true, tension:.3,
-    pointRadius: 4, borderWidth: 2,
+    label:k, data:months.map(m=>(fm[m]||{})[k]||0),
+    borderColor:colors[i], backgroundColor:colors[i]+'22', fill:true, tension:.3, pointRadius:4, borderWidth:2,
   }));
   destroyChart('funnel-monthly');
   charts['funnel-monthly'] = new Chart(document.getElementById('chart-funnel-monthly'), {
-    type: 'line',
-    data: { labels: months.map(fmtMonth), datasets },
-    options: chartOpts('人')
+    type:'line', data:{ labels:months.map(fmtMonth), datasets }, options:chartOpts('人')
   });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: 年代別
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderFunnelMediaChart() {
+  if (!D || !D.funnel) return;
+  const selMonth = document.getElementById('funnel-media-month').value;
+  const selMedia = document.getElementById('funnel-media-filter').value;
+  const keys     = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
+  const colors   = ['#E8001D','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
+
+  let byMedia = selMonth === 'all'
+    ? (D.funnel.byMedia || {})
+    : Object.fromEntries(Object.entries(D.funnel.byMediaMonthly||{}).map(([med,mo]) => [med, mo[selMonth]]).filter(([,v])=>v));
+
+  const mediaList = Object.keys(byMedia).sort();
+  const mediaColors = genColors(mediaList.length);
+
+  const datasets = selMedia === 'all'
+    ? mediaList.map((m,i) => ({ label:m, data:keys.map(k=>(byMedia[m]||{})[k]||0), backgroundColor:mediaColors[i]+'cc', borderRadius:4 }))
+    : [{ label:selMedia, data:keys.map(k=>(byMedia[selMedia]||{})[k]||0), backgroundColor:colors, borderRadius:4 }];
+
+  destroyChart('funnel-media');
+  charts['funnel-media'] = new Chart(document.getElementById('chart-funnel-media'), {
+    type:'bar', data:{ labels:keys, datasets },
+    options: { ...chartOpts('人'), scales:{ x:{grid:{color:'#e2e8f0'}}, y:{beginAtZero:true, ticks:{callback:v=>v+'人'}} } }
+  });
+}
+
+// ━━━ 年代別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderAgePage() {
   if (!D) return;
-  const sel = document.getElementById('age-media').value;
+  const sel  = document.getElementById('age-media').value;
   const data = D.ageByMedia;
   const brackets = data.brackets;
-  const src = sel === 'all' ? data.total : (data.byMedia[sel]||{});
+  const src  = sel === 'all' ? data.total : (data.byMedia[sel]||{});
   const vals = brackets.map(b => src[b]||0);
   const colors = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6','#94a3b8'];
 
-  // Pie
   destroyChart('age-pie');
   charts['age-pie'] = new Chart(document.getElementById('chart-age-pie'), {
-    type: 'pie',
-    data: { labels: brackets, datasets:[{ data: vals, backgroundColor: colors, borderWidth:1 }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
+    type:'pie', data:{ labels:brackets, datasets:[{ data:vals, backgroundColor:colors, borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
   });
 
-  // Bar
   destroyChart('age-bar');
   charts['age-bar'] = new Chart(document.getElementById('chart-age-bar'), {
-    type: 'bar',
-    data: { labels: brackets, datasets:[{ label:'応募数', data: vals, backgroundColor: colors, borderRadius:6 }] },
-    options: chartOpts('人')
+    type:'bar', data:{ labels:brackets, datasets:[{ label:'応募数', data:vals, backgroundColor:colors, borderRadius:6 }] },
+    options:chartOpts('人')
   });
 
-  // Media × age stacked
-  const mediaList = data.mediaList;
-  const mediaColors = genColors(mediaList.length);
-  const stackedDs = mediaList.map((m,i) => ({
-    label: m, data: brackets.map(b => (data.byMedia[m]||{})[b]||0),
-    backgroundColor: mediaColors[i], borderRadius: 4,
+  const stackedDs = data.mediaList.map((m,i) => ({
+    label:m, data:brackets.map(b=>(data.byMedia[m]||{})[b]||0),
+    backgroundColor:genColors(data.mediaList.length)[i], borderRadius:4,
   }));
   destroyChart('age-media');
   charts['age-media'] = new Chart(document.getElementById('chart-age-media'), {
-    type: 'bar',
-    data: { labels: brackets, datasets: stackedDs },
-    options: { ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
+    type:'bar', data:{ labels:brackets, datasets:stackedDs },
+    options:{ ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
   });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: 国籍別
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━ 国籍別 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderNatPage() {
   if (!D) return;
-  const nd = D.nationalityByMedia;
-  const nats = nd.nationalityList;
+  const nd    = D.nationalityByMedia;
+  const nats  = nd.nationalityList;
   const colors = genColors(nats.length);
-  const selMedia = document.getElementById('nat-media').value;
 
-  // Pie (total)
-  const totalVals = nats.map(n => nd.total[n]||0);
   destroyChart('nat-pie');
   charts['nat-pie'] = new Chart(document.getElementById('chart-nat-pie'), {
-    type: 'doughnut',
-    data: { labels: nats, datasets:[{ data: totalVals, backgroundColor: colors, borderWidth:1 }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
+    type:'doughnut', data:{ labels:nats, datasets:[{ data:nats.map(n=>nd.total[n]||0), backgroundColor:colors, borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{font:{size:11}} } } }
   });
 
-  // Media × nat
   const mediaKeys = Object.keys(nd.byMedia).sort();
-  const stackedDs = nats.map((n,i) => ({
-    label: n, data: mediaKeys.map(m => (nd.byMedia[m]||{})[n]||0),
-    backgroundColor: colors[i], borderRadius:4,
-  }));
   destroyChart('nat-media');
   charts['nat-media'] = new Chart(document.getElementById('chart-nat-media'), {
-    type: 'bar',
-    data: { labels: mediaKeys, datasets: stackedDs },
-    options: { ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
+    type:'bar',
+    data:{ labels:mediaKeys, datasets:nats.map((n,i)=>({ label:n, data:mediaKeys.map(m=>(nd.byMedia[m]||{})[n]||0), backgroundColor:colors[i], borderRadius:4 })) },
+    options:{ ...chartOpts('人'), scales:{ x:{stacked:true}, y:{stacked:true, ticks:{callback:v=>v+'人'}} } }
   });
 
-  // Monthly line
   const months = sortedMonths();
-  const lineDs = nats.map((n,i) => ({
-    label: n, data: months.map(m => (nd.byMonth[m]||{})[n]||0),
-    borderColor: colors[i], backgroundColor: colors[i]+'22', tension:.3,
-    pointRadius:3, borderWidth:2, fill:false,
-  }));
   destroyChart('nat-monthly');
   charts['nat-monthly'] = new Chart(document.getElementById('chart-nat-monthly'), {
-    type: 'line',
-    data: { labels: months.map(fmtMonth), datasets: lineDs },
-    options: chartOpts('人')
+    type:'line',
+    data:{ labels:months.map(fmtMonth), datasets:nats.map((n,i)=>({ label:n, data:months.map(m=>(nd.byMonth[m]||{})[n]||0), borderColor:colors[i], backgroundColor:colors[i]+'22', tension:.3, pointRadius:3, borderWidth:2, fill:false })) },
+    options:chartOpts('人')
   });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: 月別詳細
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━ 月別詳細 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderMonthlyPage() {
   if (!D) return;
-  const months = allFiscalMonths();
-  const labels = months.map(fmtMonth);
+  const months  = allFiscalMonths();
+  const labels  = months.map(fmtMonth);
   const actual  = months.map(m => D.monthly[m]||0);
   const targets = months.map(m => D.monthlyTargets[parseInt(m.split('-')[1])]||0);
   const rates   = months.map((m,i) => targets[i] ? Math.round(actual[i]/targets[i]*100) : 0);
 
   destroyChart('monthly-detail');
   charts['monthly-detail'] = new Chart(document.getElementById('chart-monthly-detail'), {
-    type: 'bar',
-    data: {
+    type:'bar',
+    data:{
       labels,
-      datasets: [
-        { label:'実績', data: actual, backgroundColor: actual.map((v,i) => v>=targets[i]?'rgba(34,197,94,.7)':'rgba(59,130,246,.7)'), borderRadius:5, yAxisID:'y' },
-        { label:'目標', data: targets, type:'line', borderColor:'#f59e0b', borderWidth:2, fill:false, tension:.3, yAxisID:'y' },
-        { label:'達成率(%)', data: rates, type:'line', borderColor:'#8b5cf6', borderDash:[4,4], borderWidth:2, fill:false, yAxisID:'y2', pointRadius:4 },
+      datasets:[
+        { label:'実績', data:actual, backgroundColor:actual.map((v,i)=>v>=targets[i]?'rgba(34,197,94,.7)':'rgba(232,0,29,.6)'), borderRadius:5, yAxisID:'y' },
+        { label:'目標', data:targets, type:'line', borderColor:'#f59e0b', borderWidth:2, fill:false, tension:.3, yAxisID:'y' },
+        { label:'達成率(%)', data:rates, type:'line', borderColor:'#8b5cf6', borderDash:[4,4], borderWidth:2, fill:false, yAxisID:'y2', pointRadius:4 },
       ]
     },
-    options: {
+    options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
-      scales:{
-        y:{ beginAtZero:true, ticks:{callback:v=>v+'人'}, grid:{color:'#e2e8f0'} },
-        y2:{ position:'right', ticks:{callback:v=>v+'%'}, grid:{drawOnChartArea:false} }
-      }
+      scales:{ y:{beginAtZero:true, ticks:{callback:v=>v+'人'}, grid:{color:'#e2e8f0'}}, y2:{position:'right', ticks:{callback:v=>v+'%'}, grid:{drawOnChartArea:false}} }
     }
   });
 
-  // Table
   const head = `<tr><th>月</th><th>目標</th><th>実績</th><th>達成率</th><th>書類通過</th><th>一次実施</th><th>最終実施</th><th>内定</th></tr>`;
-  const body = months.map((m, i) => {
-    const fm = (D.funnel.monthly[m]||{});
-    const r = rates[i];
-    const cls = r>=100?'hit':r<70?'miss':'';
+  const body = months.map((m,i) => {
+    const fm = (D.funnel.monthly[m]||{}), r = rates[i];
     return `<tr>
-      <td class="label">${labels[i]}</td>
-      <td>${targets[i]}</td>
-      <td>${actual[i]}</td>
-      <td class="${cls}">${r}%</td>
-      <td>${fm.書類通過||0}</td>
-      <td>${fm.一次実施||0}</td>
-      <td>${fm.最終実施||0}</td>
-      <td>${fm.内定||0}</td>
+      <td class="label">${labels[i]}</td><td>${targets[i]}</td><td>${actual[i]}</td>
+      <td class="${r>=100?'hit':r<70?'miss':''}">${r}%</td>
+      <td>${fm.書類通過||0}</td><td>${fm.一次実施||0}</td><td>${fm.最終実施||0}</td><td>${fm.内定||0}</td>
     </tr>`;
   }).join('');
   document.getElementById('monthly-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Utilities
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━ 期間分析 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderPeriodPage() {
+  if (!D || !D.periods) return;
+  const p = D.periods;
+  const z = p.全体;
+
+  // サマリーカード5枚（新規2項目追加）
+  const summaryItems = [
+    { label:'応募 → 書類到着',     days: z.応募_書類到着,      n: z.応募_書類到着_n,      color:'#0ea5e9' },
+    { label:'書類到着 → 面接確定', days: z.書類到着_面接確定,   n: z.書類到着_面接確定_n,   color:'#6366f1' },
+    { label:'応募 → 一次面接',     days: z.応募_一次,           n: z.応募_一次_n,           color:'#3b82f6' },
+    { label:'一次 → 最終面接',     days: z.一次_最終,           n: z.一次_最終_n,           color:'#f59e0b' },
+    { label:'応募 → 内定',         days: z.応募_内定,           n: z.応募_内定_n,           color:'#22c55e' },
+  ];
+  document.getElementById('period-summary').innerHTML = summaryItems.map(s => `
+    <div class="card" style="border-top:3px solid ${s.color}">
+      <div class="kpi-label">${s.label}</div>
+      <div class="kpi-value" style="color:${s.color}">${s.days != null ? s.days : '-'}<span style="font-size:1rem;font-weight:400"> 日</span></div>
+      <div class="kpi-target">全体平均（${s.n || 0}件）</div>
+    </div>`).join('');
+
+  // 月別折れ線グラフ（5指標）
+  const months = sortedMonths();
+  const datasets = [
+    { label:'応募→書類到着',     data:months.map(m=>p.月別[m]?.応募_書類到着     ?? null), borderColor:'#0ea5e9', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'書類到着→面接確定', data:months.map(m=>p.月別[m]?.書類到着_面接確定 ?? null), borderColor:'#6366f1', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'応募→一次面接',     data:months.map(m=>p.月別[m]?.応募_一次         ?? null), borderColor:'#3b82f6', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'一次→最終面接',     data:months.map(m=>p.月別[m]?.一次_最終         ?? null), borderColor:'#f59e0b', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+    { label:'応募→内定',         data:months.map(m=>p.月別[m]?.応募_内定         ?? null), borderColor:'#22c55e', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
+  ];
+  destroyChart('period-monthly');
+  charts['period-monthly'] = new Chart(document.getElementById('chart-period-monthly'), {
+    type:'line', data:{ labels:months.map(fmtMonth), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
+      scales:{ x:{grid:{color:'#e2e8f0'}}, y:{beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+'日'}} }
+    }
+  });
+
+  // 月別テーブル（5列）
+  const head = `<tr>
+    <th>月</th>
+    <th>応募→書類到着(日)</th><th>件数</th>
+    <th>書類→面接確定(日)</th><th>件数</th>
+    <th>応募→一次(日)</th><th>件数</th>
+    <th>一次→最終(日)</th><th>件数</th>
+    <th>応募→内定(日)</th><th>件数</th>
+  </tr>`;
+  const body = months.map(m => {
+    const d = p.月別[m] || {};
+    const dash = v => v != null ? v : '-';
+    const n    = v => v || 0;
+    return `<tr>
+      <td class="label">${fmtMonth(m)}</td>
+      <td>${dash(d.応募_書類到着)}</td>      <td style="color:var(--muted)">${n(d.応募_書類到着_n)}件</td>
+      <td>${dash(d.書類到着_面接確定)}</td>  <td style="color:var(--muted)">${n(d.書類到着_面接確定_n)}件</td>
+      <td>${dash(d.応募_一次)}</td>          <td style="color:var(--muted)">${n(d.応募_一次_n)}件</td>
+      <td>${dash(d.一次_最終)}</td>          <td style="color:var(--muted)">${n(d.一次_最終_n)}件</td>
+      <td>${dash(d.応募_内定)}</td>          <td style="color:var(--muted)">${n(d.応募_内定_n)}件</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+}
+
+// ━━━ Utilities ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function allFiscalMonths() {
-  // 4月〜3月の全月キー（データの年度から生成）
   const existing = sortedMonths();
   if (!existing.length) return [];
   const firstYear = parseInt(existing[0].split('-')[0]);
@@ -824,177 +759,22 @@ function allFiscalMonths() {
   for (let m=1; m<=3;  m++) result.push(`${fiscalYear+1}-${String(m).padStart(2,'0')}`);
   return result;
 }
-
-function fmtMonth(key) {
-  const [y,m] = key.split('-');
-  return y + '/' + m;
-}
-
-function pct2(n, d) {
-  return (!d||d===0) ? 0 : Math.round(n/d*100);
-}
-
-function destroyChart(key) {
-  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
-}
-
+function fmtMonth(key) { const [y,m]=key.split('-'); return y+'/'+m; }
+function pct2(n,d)     { return (!d||d===0)?0:Math.round(n/d*100); }
+function destroyChart(key) { if (charts[key]) { charts[key].destroy(); delete charts[key]; } }
 function chartOpts(unit) {
   return {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { position:'bottom', labels:{ font:{size:11} } } },
-    scales: {
-      x: { grid:{ color:'#e2e8f0' }, ticks:{ font:{size:11} } },
-      y: { beginAtZero:true, grid:{ color:'#e2e8f0' }, ticks:{ callback: v => v+unit, font:{size:11} } }
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
+    scales:{
+      x:{ grid:{color:'#e2e8f0'}, ticks:{font:{size:11}} },
+      y:{ beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+unit, font:{size:11}} }
     }
   };
 }
-
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ▌ PAGE: 期間分析
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderPeriodPage() {
-  if (!D || !D.periods) return;
-  const p = D.periods;
-  const z = p.全体;
-
-  // サマリーカード3枚
-  const summaryItems = [
-    { label:'応募 → 一次面接', days: z.応募_一次, n: z.応募_一次_n, color:'#3b82f6' },
-    { label:'一次面接 → 最終面接', days: z.一次_最終, n: z.一次_最終_n, color:'#6366f1' },
-    { label:'応募 → 内定', days: z.応募_内定, n: z.応募_内定_n, color:'#22c55e' },
-  ];
-  document.getElementById('period-summary').innerHTML = summaryItems.map(s => `
-    <div class="card" style="border-top:3px solid ${s.color}">
-      <div class="kpi-label">${s.label}</div>
-      <div class="kpi-value" style="color:${s.color}">${s.days != null ? s.days : '-'}<span style="font-size:1rem;font-weight:400"> 日</span></div>
-      <div class="kpi-target">全体平均（${s.n}件）</div>
-    </div>`).join('');
-
-  // 月別折れ線グラフ
-  const months = sortedMonths();
-  const labels = months.map(fmtMonth);
-  const datasets = [
-    { label:'応募→一次面接', data: months.map(m => p.月別[m]?.応募_一次 ?? null), borderColor:'#3b82f6', backgroundColor:'#3b82f622', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
-    { label:'一次→最終面接', data: months.map(m => p.月別[m]?.一次_最終 ?? null), borderColor:'#6366f1', backgroundColor:'#6366f122', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
-    { label:'応募→内定',     data: months.map(m => p.月別[m]?.応募_内定 ?? null), borderColor:'#22c55e', backgroundColor:'#22c55e22', tension:.3, pointRadius:4, borderWidth:2, spanGaps:true },
-  ];
-  destroyChart('period-monthly');
-  charts['period-monthly'] = new Chart(document.getElementById('chart-period-monthly'), {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } },
-      scales:{
-        x:{ grid:{color:'#e2e8f0'}, ticks:{font:{size:11}} },
-        y:{ beginAtZero:true, grid:{color:'#e2e8f0'}, ticks:{callback:v=>v+'日', font:{size:11}} }
-      }
-    }
-  });
-
-  // 月別テーブル
-  const head = `<tr><th>月</th><th>応募→一次(日)</th><th>件数</th><th>一次→最終(日)</th><th>件数</th><th>応募→内定(日)</th><th>件数</th></tr>`;
-  const body = months.map(m => {
-    const d = p.月別[m] || {};
-    return `<tr>
-      <td class="label">${fmtMonth(m)}</td>
-      <td>${d.応募_一次 != null ? d.応募_一次 : '-'}</td>
-      <td style="color:var(--muted)">${d.応募_一次_n || 0}件</td>
-      <td>${d.一次_最終 != null ? d.一次_最終 : '-'}</td>
-      <td style="color:var(--muted)">${d.一次_最終_n || 0}件</td>
-      <td>${d.応募_内定 != null ? d.応募_内定 : '-'}</td>
-      <td style="color:var(--muted)">${d.応募_内定_n || 0}件</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('period-table').innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
-}
-
-
-function renderFunnelMediaChart() {
-  if (!D || !D.funnel) return;
-  const selMonth = document.getElementById('funnel-media-month').value;
-  const selMedia = document.getElementById('funnel-media-filter').value;
-  const keys = ['応募','有効応募','書類通過','一次実施','最終実施','内定','入社'];
-  const colors = ['#E8001D','#0ea5e9','#22c55e','#6366f1','#f59e0b','#ec4899','#8b5cf6'];
-
-  // 月別 or 全期間のbyMediaを取得
-  let byMedia;
-  if (selMonth === 'all') {
-    byMedia = D.funnel.byMedia || {};
-  } else {
-    // 月別：byMediaMonthlyから該当月のファネルデータを取得
-    byMedia = {};
-    const bMM = D.funnel.byMediaMonthly || {};
-    Object.keys(bMM).forEach(med => {
-      if (bMM[med][selMonth]) byMedia[med] = bMM[med][selMonth];
-    });
-  }
-
-  const mediaList = Object.keys(byMedia).sort();
-  const mediaColors = genColors(mediaList.length);
-
-  let datasets;
-  if (selMedia === 'all') {
-    datasets = mediaList.map((m, i) => ({
-      label: m,
-      data: keys.map(k => (byMedia[m]||{})[k] || 0),
-      backgroundColor: mediaColors[i] + 'cc',
-      borderRadius: 4,
-    }));
-  } else {
-    const d = byMedia[selMedia] || {};
-    datasets = [{
-      label: selMedia,
-      data: keys.map(k => d[k] || 0),
-      backgroundColor: colors,
-      borderRadius: 4,
-    }];
-  }
-
-  destroyChart('funnel-media');
-  charts['funnel-media'] = new Chart(document.getElementById('chart-funnel-media'), {
-    type: 'bar',
-    data: { labels: keys, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position:'bottom', labels:{font:{size:11}} },
-        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '人' } }
-      },
-      scales: {
-        x: { grid:{color:'#e2e8f0'} },
-        y: { beginAtZero:true, ticks:{callback:v=>v+'人'} }
-      },
-      animation: {
-        onComplete: function() {
-          const chart = this;
-          const ctx = chart.ctx;
-          ctx.font = 'bold 11px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          chart.data.datasets.forEach((dataset, i) => {
-            const meta = chart.getDatasetMeta(i);
-            if (!meta.hidden) {
-              meta.data.forEach((bar, j) => {
-                const val = dataset.data[j];
-                if (val > 0) {
-                  ctx.fillStyle = '#333';
-                  ctx.fillText(val, bar.x, bar.y - 3);
-                }
-              });
-            }
-          });
-        }
-      }
-    }
-  });
-}
-
 function genColors(n) {
-  const palette = ['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6',
-                   '#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4'];
-  return Array.from({length:n}, (_,i) => palette[i % palette.length]);
+  const palette=['#3b82f6','#0ea5e9','#6366f1','#f59e0b','#22c55e','#8b5cf6','#ef4444','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4'];
+  return Array.from({length:n},(_,i)=>palette[i%palette.length]);
 }
 </script>
 </body>
