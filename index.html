@@ -673,7 +673,7 @@ function renderMonthlyPage() {
 
   const head = `<tr>
     <th>月</th><th>目標</th><th>実績</th><th>達成率</th>
-    <th>有効応募</th><th>書類送付率</th>
+    <th>書類送付</th><th>書類送付率</th>
     <th>書類通過</th><th>書類通過率</th>
     <th>一次実施</th><th>一次実施率</th>
     <th>最終実施</th><th>最終実施率</th>
@@ -682,26 +682,26 @@ function renderMonthlyPage() {
   const body = months.map((m,i) => {
     const fm = (D.funnel.monthly[m]||{}), r = rates[i];
     const apps     = actual[i] || 0;
-    const valid    = fm.有効応募  || 0;
+    const docSend  = fm.書類送付  || 0;
     const docPass  = fm.書類通過  || 0;
     const int1     = fm.一次実施  || 0;
     const int2     = fm.最終実施  || 0;
     const offer    = fm.内定      || 0;
     const join     = fm.入社      || 0;
-    const sendRate  = apps  ? Math.round(valid   / apps    * 100) : 0;
-    const docRate   = valid ? Math.round(docPass / valid   * 100) : 0;
-    const int1Rate  = docPass ? Math.round(int1  / docPass * 100) : 0;
-    const int2Rate  = int1   ? Math.round(int2   / int1   * 100) : 0;
+    const sendRate  = apps    ? Math.round(docSend / apps    * 100) : 0;
+    const docRate   = docSend ? Math.round(docPass / docSend * 100) : 0;
+    const int1Rate  = docPass ? Math.round(int1   / docPass * 100) : 0;
+    const int2Rate  = int1   ? Math.round(int2    / int1    * 100) : 0;
     const rateCls = v => v >= 60 ? 'hit' : v > 0 && v < 30 ? 'miss' : '';
     return `<tr>
       <td class="label">${labels[i]}</td>
       <td>${targets[i]}</td>
       <td>${apps}</td>
       <td class="${r>=100?'hit':r<70?'miss':''}">${r}%</td>
-      <td>${valid}</td>
+      <td>${docSend}</td>
       <td class="${rateCls(sendRate)}">${apps ? sendRate+'%' : '-'}</td>
       <td>${docPass}</td>
-      <td class="${rateCls(docRate)}">${valid ? docRate+'%' : '-'}</td>
+      <td class="${rateCls(docRate)}">${docSend ? docRate+'%' : '-'}</td>
       <td>${int1}</td>
       <td class="${rateCls(int1Rate)}">${docPass ? int1Rate+'%' : '-'}</td>
       <td>${int2}</td>
